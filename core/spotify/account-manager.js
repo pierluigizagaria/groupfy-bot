@@ -22,7 +22,6 @@ function tryNewUser(telegram_id) {
 
 function getSpotifyAuthURL(telegram_id) {
     var state = Math.random().toString(31).substring(2, 10) + Math.random().toString(31).substring(2, 10);
-
     Users.findOne({ telegram_id: telegram_id }, async (err, res) => {
         if (err) console.error(err);
         if (res != null) {
@@ -50,8 +49,7 @@ function connectSpotify(req, res, next) {
         if (user_res != null) {
             console.log('Connecting Spotify account to ' + user_res.telegram_id)
             spotifyApi.authorizationCodeGrant(req.query.code).then((spotify_data, err) => {
-                if (err) console.error('Could not get tokens from spotify.')
-                console.log('Got Spotify tokens.')
+                if (err) console.error(err)
                 Users.findOneAndUpdate({ telegram_id: user_res.telegram_id }, {
                     spotify_state: '',
                     spotify_token: spotify_data.body['access_token'],
@@ -60,7 +58,6 @@ function connectSpotify(req, res, next) {
                 }, (err) => {
                     if (err) console.error(err)
                     else {
-                        console.log('Tokens saved on database.')
                         res.successful = true
                         next()  
                     } 
