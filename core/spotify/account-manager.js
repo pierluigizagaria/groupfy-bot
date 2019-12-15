@@ -11,11 +11,7 @@ function tryNewUser(telegram_id) {
             })
             try {
                 newUser.save()
-                console.log(`${telegram_id} has been created.`)
             } catch (err) { console.error(err) }
-        }
-        else {
-            console.log(`${telegram_id} already exists.`)
         }
     })
 }
@@ -25,7 +21,6 @@ function getSpotifyAuthURL(telegram_id) {
     Users.findOne({ telegram_id: telegram_id }, async (err, res) => {
         if (err) console.error(err);
         if (res != null) {
-            console.log('Generated auth url for ' + telegram_id)
             Users.findOneAndUpdate({ telegram_id: telegram_id }, {
                 spotify_state: state
             }, (err) => {
@@ -47,7 +42,6 @@ function connectSpotify(req, res, next) {
     Users.findOne({ spotify_state: req.query.state }, (err, user_res) => {
         if (err) console.error(err)
         if (user_res != null) {
-            console.log('Connecting Spotify account to ' + user_res.telegram_id)
             spotifyApi.authorizationCodeGrant(req.query.code).then((spotify_data, err) => {
                 if (err) console.error(err)
                 Users.findOneAndUpdate({ telegram_id: user_res.telegram_id }, {
