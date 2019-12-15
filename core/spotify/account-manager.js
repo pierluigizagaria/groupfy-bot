@@ -28,7 +28,7 @@ function getSpotifyAuthURL(telegram_id) {
             })
         }
     })
-    return spotifyApi.createAuthorizeURL(scopes, state)
+    return spotifyApi.createAuthorizeURL(scopes, state, true)
 }
 
 function isSpotifyConnected(telegram_id, callback) {
