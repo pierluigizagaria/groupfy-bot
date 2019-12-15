@@ -4,6 +4,7 @@ const Markup = require('telegraf/markup')
 const inlineMenu = require('./inline-menu')
 const CustomContext = require('./inline-menu-ctx')
 const accountManager = require('../spotify/account-manager')
+const spotifyEndpoint = require('../spotify/endpoint-manager')
 
 const bot = new Telegraf(process.env.BOT_TOKEN, { contextType: CustomContext })
 
@@ -78,6 +79,26 @@ bot.start(async (ctx) => {
     accountManager.isSpotifyConnected(ctx.from.id, (res) => {
         ctx.spotifyLogged = res != null ? true : false
         ctx.initMenu(mainMenu)
+    })
+})
+
+bot.inlineQuery(/[\w]/, async ( ctx ) => {
+    spotifyEndpoint.getTracks(ctx.inlineQuery.query, (tracks) => {
+        const results = tracks.map(({ id, title, artists, thumbnail, url}) => ({
+            type: 'article',
+            id: id,
+            title: title,
+            description: artists,
+            thumb_url: thumbnail,
+            input_message_content: {
+                message_text: `<a href='${url}'>${title + ', ' + artists}</a>`,
+                parse_mode: 'HTML'
+            },
+            reply_markup: Markup.inlineKeyboard([
+                Markup.urlButton('Open on Spotify', url)
+            ])
+        }))
+        ctx.answerInlineQuery(results)
     })
 })
 
