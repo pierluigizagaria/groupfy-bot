@@ -1,4 +1,4 @@
-Groupfy Documento
+[Groupfy Documento]
 
 Groupfy è un bot telegram che permette agli utenti premium di spotify di creare gruppi di ascolto
 in cui gli amici possono mettere in coda, fermare o saltare canzoni tramite il bot.
