@@ -24,5 +24,5 @@ app.get('/*', function (req, res) {
     res.send('You should not be here!');
 })
 
-bot.launch()
+bot.launch().then(console.log('Telegram bot started.'))
 app.listen(25565, () => { console.log('Express listening on port 8080.') })
