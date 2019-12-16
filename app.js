@@ -26,4 +26,4 @@ app.get('/*', function (req, res) {
 })
 
 bot.launch().then(console.log('Telegram bot started.'))
-app.listen(25565, () => { console.log('Express listening on port 8080.') })
+app.listen(process.env.PORT, () => { console.log('Express listening on port 8080.') })
