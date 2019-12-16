@@ -13,7 +13,10 @@ mongoose.connect(process.env.MONGODB_URL, {
 })
 
 const db = mongoose.connection;
-db.on('error', (error) => console.error(error));
+db.on('error', (error) => {
+    console.log('Could not connect to MongoDB')
+    throw new Error(error)
+})
 db.once('open', () => { console.log('Connected to MongoDB.') });
 
 app.get('/auth/spotify/callback', accountManager.connectSpotify, (req, res) => {
@@ -26,4 +29,4 @@ app.get('/*', function (req, res) {
 })
 
 bot.launch().then(console.log('Telegram bot started.'))
-app.listen(process.env.PORT, () => { console.log('Express listening on port 8080.') })
+app.listen(process.env.PORT, () => { console.log(`Express listening on port ${process.env.PORT}.`)})
