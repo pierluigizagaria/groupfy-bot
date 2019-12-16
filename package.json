@@ -9,7 +9,6 @@
   "author": "Pierluigi Zagaria",
   "license": "ISC",
   "dependencies": {
-    "bcrypt": "^3.0.7",
     "dotenv": "^8.2.0",
     "express": "^4.17.1",
     "jsotp": "^1.0.4",
