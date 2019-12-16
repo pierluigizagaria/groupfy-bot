@@ -2,7 +2,7 @@ require('dotenv').config()
 const express = require('express')
 const app = express()
 const mongoose = require('mongoose')
-const bot = require('./core/telegram/groupfy-telegram-bot')
+const bot = require('./core/telegram/bot-main')
 const accountManager = require('./core/spotify/account-manager')
 
 mongoose.connect(process.env.MONGODB_URL, {
