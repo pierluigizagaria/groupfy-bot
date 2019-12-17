@@ -17,11 +17,12 @@ mongoose.connect(process.env.MONGODB_URL, {
 
 const db = mongoose.connection;
 db.on('error', (error) => {
-    console.log('Could not connect to MongoDB')
-    throw new Error(error)
+    throw new Error('Could not connect to MongoDB: ' + error)
 })
 db.once('open', () => { console.log('Connected to MongoDB.') });
 
 bot.launch().then( console.log('Telegram bot started.') )
 
-app.listen(process.env.PORT, () => { console.log(`Express listening on port ${process.env.PORT}.`) })
+const server = app.listen(process.env.PORT, () => {
+     console.log('Express listening on port ' + server.address().port)
+})
