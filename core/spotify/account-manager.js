@@ -39,6 +39,11 @@ function isSpotifyConnected(telegram_id, callback) {
 }
 
 function connectSpotify(req, res, next) {
+    if (!req.query.state || !req.query.code){
+        res.successful = false
+        next()
+    }
+    else
     Users.findOne({ spotify_state: req.query.state }, (err, user_res) => {
         if (err) console.error(err)
         if (user_res != null) {

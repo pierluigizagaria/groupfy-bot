@@ -5,7 +5,7 @@ const bot = require('./core/telegram/bot-main')
 const spotifyAuth = require('./core/routes/spotify-auth')
 
 const app = express()
-app.use(express.static(path.join(__dirname, '/core/public')));
+app.use(express.static(__dirname + '/core/routes/public'));
 app.use('/', spotifyAuth)
 
 mongoose.connect(process.env.MONGODB_URL, {
