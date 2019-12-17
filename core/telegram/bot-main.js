@@ -91,7 +91,7 @@ bot.inlineQuery(/[\w]/, async ( ctx ) => {
             description: artists,
             thumb_url: thumbnail,
             input_message_content: {
-                message_text: `<pre>${title + ', ' + artists}</pre>`,
+                message_text: `<b>${title + ', ' + artists}</b>`,
                 parse_mode: 'HTML'
             },
             reply_markup: Markup.inlineKeyboard([

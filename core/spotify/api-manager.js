@@ -2,6 +2,7 @@ const api = require('./spotify-api')
 
 function getTracks(query, callback) {
     api.clientCredentialsGrant({}, (error, token_res) => {
+        if (error) console.error(error)
         api.setAccessToken(token_res.body['access_token'])
         api.searchTracks(query, '', (err, data) => {
             if (err) console.error(err)
@@ -18,4 +19,6 @@ function getTracks(query, callback) {
     })
 }
 
-exports.getTracks = getTracks
+module.exports = {
+    getTracks
+}

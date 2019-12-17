@@ -21,6 +21,6 @@ db.on('error', (error) => {
 })
 db.once('open', () => { console.log('Connected to MongoDB.') });
 
-bot.launch().then(console.log('Telegram bot started.'))
+bot.launch().then( console.log('Telegram bot started.') )
 
-app.listen(process.env.PORT, () => { console.log(`Express listening on port ${process.env.PORT}.`)})
+app.listen(process.env.PORT, () => { console.log(`Express listening on port ${process.env.PORT}.`) })
