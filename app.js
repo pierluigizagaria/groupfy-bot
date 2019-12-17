@@ -1,9 +1,11 @@
 require('dotenv').config()
 const express = require('express')
-const app = express()
 const mongoose = require('mongoose')
 const bot = require('./core/telegram/bot-main')
-const accountManager = require('./core/spotify/account-manager')
+const spotifyAuth = require('./core/routes/spotify-auth')
+
+const app = express()
+app.use('/', spotifyAuth)
 
 mongoose.connect(process.env.MONGODB_URL, {
     useNewUrlParser: true,
@@ -19,14 +21,6 @@ db.on('error', (error) => {
 })
 db.once('open', () => { console.log('Connected to MongoDB.') });
 
-app.get('/auth/spotify/callback', accountManager.connectSpotify, (req, res) => {
-    res.successful ? res.send('Spotify successfully connected.') : res.send('Could not connect your spotify account.')
-    res.end()
-})
-
-app.get('/*', function (req, res) {
-    res.send('You should not be here!');
-})
-
 bot.launch().then(console.log('Telegram bot started.'))
+
 app.listen(process.env.PORT, () => { console.log(`Express listening on port ${process.env.PORT}.`)})

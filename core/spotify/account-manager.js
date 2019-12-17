@@ -1,6 +1,6 @@
 const spotifyApi = require('./spotify-api')
-const scopes = ['user-read-playback-state', 'user-modify-playback-state', 'user-read-currently-playing']
 const Users = require('../models/user')
+const scopes = ['user-read-playback-state', 'user-modify-playback-state', 'user-read-currently-playing']
 
 function tryNewUser(telegram_id) {
     Users.findOne({ telegram_id: telegram_id }, (err, res) => {
@@ -74,8 +74,10 @@ function disconnectSpotify(telegram_id, callback) {
     })
 }
 
-exports.tryNewUser = tryNewUser
-exports.getSpotifyAuthURL = getSpotifyAuthURL
-exports.connectSpotify = connectSpotify
-exports.isSpotifyConnected = isSpotifyConnected
-exports.disconnectSpotify = disconnectSpotify
+module.exports = {
+    tryNewUser,
+    getSpotifyAuthURL,
+    connectSpotify,
+    isSpotifyConnected,
+    disconnectSpotify
+}

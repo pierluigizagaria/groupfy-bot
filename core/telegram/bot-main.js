@@ -4,7 +4,7 @@ const Markup = require('telegraf/markup')
 const inlineMenu = require('./inline-menu')
 const CustomContext = require('./inline-menu-ctx')
 const accountManager = require('../spotify/account-manager')
-const spotifyEndpoint = require('../spotify/endpoint-manager')
+const spotifyEndpoint = require('../spotify/api-manager')
 
 const bot = new Telegraf(process.env.TELEGRAM_BOT_TOKEN, { contextType: CustomContext })
 
