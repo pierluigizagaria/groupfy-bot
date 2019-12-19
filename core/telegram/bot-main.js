@@ -3,7 +3,7 @@ const Telegraf = require('telegraf')
 const Markup = require('telegraf/markup')
 const inlineMenu = require('./inline-menu')
 const CustomContext = require('./inline-menu-ctx')
-const accountManager = require('../spotify/account-manager')
+const accounts = require('../spotify/accounts')
 const spotifyEndpoint = require('../spotify/api-manager')
 
 const bot = new Telegraf(process.env.TELEGRAM_BOT_TOKEN, { contextType: CustomContext })
@@ -22,7 +22,7 @@ const mainMenu = new inlineMenu(
 const connectSpotifyMenu = new inlineMenu(
     ctx => `<b>Open the link and press done to connect your spotify account.</b>`,
     ctx => Markup.inlineKeyboard([
-        [Markup.urlButton('Authorize Spotify', accountManager.getSpotifyAuthURL(ctx.from.id))],
+        [Markup.urlButton('Authorize Spotify', accounts.getAuthURL(ctx.from.id))],
         [Markup.callbackButton('Done', 'spotify-done')]
     ])
 )
@@ -35,8 +35,17 @@ const loggedInMenu = new inlineMenu(
     ])
 )
 
+//Group Menu 
+const groupMenu = new inlineMenu(
+    ctx => `Share the code to let your friends join the group
+            <code>${ctx.groupCode}</code>`,
+    ctx => Markup.inlineKeyboard([
+        Markup.callbackButton('Disband Group', 'close-group')
+    ])
+)
+
 bot.action('main-menu', async (ctx) => {
-    accountManager.isSpotifyConnected(ctx.from.id, (res) => {
+    accounts.isConnected(ctx.from.id, (res) => {
         ctx.spotifyLogged = res != null ? true : false
         ctx.editMenu(mainMenu)
     })
@@ -50,8 +59,12 @@ bot.action('spotify-account-menu', async (ctx) => {
     ctx.editMenu(loggedInMenu)
 })
 
+bot.action('create-group', async (ctx) => {
+    ctx.editMenu(groupMenu)
+})
+
 bot.action('spotify-done', async (ctx) => {
-    accountManager.isSpotifyConnected(ctx.from.id, (res) => {
+    accounts.isConnected(ctx.from.id, (res) => {
         if (res) ctx.answerCbQuery('Your Spotify account has been connected.')
         else
             ctx.answerCbQuery('Could not connect to your spotify account.')
@@ -61,12 +74,12 @@ bot.action('spotify-done', async (ctx) => {
 })
 
 bot.action('spotify-logout', async (ctx) => {
-    accountManager.disconnectSpotify(ctx.from.id, (err) => {
+    accounts.disconnect(ctx.from.id, (err) => {
         if (err) {
             ctx.answerCbQuery('An error occured, please try again.')
         } else {
             ctx.answerCbQuery('Your Spotify account has been disconnected.')
-            accountManager.isSpotifyConnected(ctx.from.id, (res) => {
+            accounts.isConnected(ctx.from.id, (res) => {
                 ctx.spotifyLogged = res != null ? true : false
                 ctx.editMenu(mainMenu)
             })
@@ -75,8 +88,8 @@ bot.action('spotify-logout', async (ctx) => {
 })
 
 bot.start(async (ctx) => {
-    accountManager.tryNewUser(ctx.from.id)
-    accountManager.isSpotifyConnected(ctx.from.id, (res) => {
+    accounts.newUser(ctx.from.id)
+    accounts.isConnected(ctx.from.id, (res) => {
         ctx.spotifyLogged = res != null ? true : false
         ctx.initMenu(mainMenu)
     })

@@ -12,7 +12,6 @@ class CustomContext extends Telegraf.Context {
 
     editMenu(inlineMenu) {
         super.editMessageText(inlineMenu.html(this), Extra.HTML().markup(inlineMenu.inlineKeyboardMarkup(this)))
-        super.answerCbQuery('')
     }
 }
 
