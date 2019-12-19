@@ -1,8 +1,8 @@
 const express = require('express')
-const accountManager = require('../spotify/account-manager')
+const accounts = require('../spotify/accounts-manager')
 const router = express.Router()
 
-router.get('/auth/spotify/callback', accountManager.connectSpotify, (req, res) => {
+router.get('/auth/spotify/callback', accounts.connect, (req, res) => {
     res.successful ? 
         res.redirect('/spotify-auth-success.html') 
         : res.redirect('/spotify-auth-failed.html')

@@ -3,7 +3,7 @@ const Telegraf = require('telegraf')
 const Markup = require('telegraf/markup')
 const inlineMenu = require('./inline-menu')
 const CustomContext = require('./inline-menu-ctx')
-const accounts = require('../spotify/accounts')
+const accounts = require('../spotify/accounts-manager')
 const spotifyEndpoint = require('../spotify/api-manager')
 
 const bot = new Telegraf(process.env.TELEGRAM_BOT_TOKEN, { contextType: CustomContext })
@@ -34,7 +34,6 @@ const loggedInMenu = new inlineMenu(
         [Markup.callbackButton('Back', 'main-menu')],
     ])
 )
-
 //Group Menu 
 const groupMenu = new inlineMenu(
     ctx => `Share the code to let your friends join the group
