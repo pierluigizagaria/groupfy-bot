@@ -14,8 +14,8 @@ const mainMenu = new inlineMenu(
     ctx => `<b>Ciao ${ctx.from.username}</b>`,
     ctx => Markup.inlineKeyboard([
         [Markup.callbackButton('Connect Spotify', 'connect-spotify-menu', ctx.spotifyLogged)],
-        [Markup.callbackButton('Spotify Account', 'spotify-account-menu', ctx.spotifyLogged)],
-        [Markup.callbackButton('Create Group', 'create-group', ctx.spotifyLogged)],
+        [Markup.callbackButton('Spotify Account', 'spotify-account-menu', !ctx.spotifyLogged)],
+        [Markup.callbackButton('Create Group', 'create-group', !ctx.spotifyLogged)],
         [Markup.callbackButton('Join Group', 'join-group')]
     ])
 )
