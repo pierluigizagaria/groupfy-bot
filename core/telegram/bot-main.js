@@ -14,14 +14,14 @@ const mainMenu = new inlineMenu(
     ctx => `<b>Ciao ${ctx.from.username}</b>`,
     ctx => Markup.inlineKeyboard([
         [Markup.callbackButton('Connect Spotify', 'connect-spotify-menu', ctx.spotifyLogged)],
-        [Markup.callbackButton('Spotify Account', 'spotify-account-menu', !ctx.spotifyLogged)],
-        [Markup.callbackButton('Create Group', 'create-group', !ctx.spotifyLogged)],
+        [Markup.callbackButton('Spotify Account', 'spotify-account-menu', ctx.spotifyLogged)],
+        [Markup.callbackButton('Create Group', 'create-group', ctx.spotifyLogged)],
         [Markup.callbackButton('Join Group', 'join-group')]
     ])
 )
 //Connect Spotify Menu
 const connectSpotifyMenu = new inlineMenu(
-    ctx => `<b>Open the link and press done to connect your spotify account.</b>`,
+    ctx => `<b>Open the link and press done to connect \n your spotify account.</b>`,
     ctx => Markup.inlineKeyboard([
         [Markup.urlButton('Authorize Spotify', accounts.getAuthURL(ctx.from.id))],
         [Markup.callbackButton('Done', 'spotify-done')]
@@ -48,20 +48,26 @@ bot.action('main-menu', async (ctx) => {
     accounts.isConnected(ctx.from.id, (res) => {
         ctx.spotifyLogged = res != null ? true : false
         ctx.editMenu(mainMenu)
+        ctx.answerCbQuery('')
     })
 })
 
 bot.action('connect-spotify-menu', async (ctx) => {
     ctx.editMenu(connectSpotifyMenu)
+    ctx.answerCbQuery('')
 })
 
 bot.action('spotify-account-menu', async (ctx) => {
     ctx.editMenu(loggedInMenu)
+    ctx.answerCbQuery('')
 })
 
 bot.action('create-group', async (ctx) => {
-    ctx.editMenu(groupMenu)
-    groups.create(ctx.from.id)
+    groups.create(ctx.from.id, (doc) => {
+        ctx.groupCode = doc.owner
+        ctx.editMenu(groupMenu)
+        ctx.answerCbQuery('')
+    })
 })
 
 bot.action('spotify-done', async (ctx) => {

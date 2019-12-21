@@ -6,12 +6,11 @@ function newUser(telegram_id) {
     Users.findOne({ telegram_id: telegram_id }, (err, res) => {
         if (err) console.error(err);
         if (res == null) {
-            const newUser = new Users({
+            new Users({
                 telegram_id: telegram_id
+            }).save( (err, doc) => {
+                if (err) console.log(err)
             })
-            try {
-                newUser.save()
-            } catch (err) { console.error(err) }
         }
     })
 }
@@ -21,7 +20,7 @@ function getAuthURL(telegram_id) {
     Users.findOne({ telegram_id: telegram_id }, async (err, doc) => {
         if (err) console.error(err);
         if (doc != null) {
-            Users.findOneAndUpdate({ telegram_id: telegram_id }, {
+            doc.updateOne({
                 spotify_state: state
             }, (err) => {
                 if (err) console.error(err);
@@ -44,27 +43,15 @@ function connect(req, res, next) {
         next()
     }
     else
-    Users.findOne({ spotify_state: req.query.state }, (err, user_res) => {
-        if (err) console.error(err)
-        if (user_res != null) {
-            spotifyApi.authorizationCodeGrant(req.query.code).then((spotify_data, err) => {
-                if (err) console.error(err)
-                Users.findOneAndUpdate({ telegram_id: user_res.telegram_id }, {
-                    spotify_state: '',
-                    spotify_token: spotify_data.body['access_token'],
-                    spotify_refresh_token: spotify_data.body['refresh_token'],
-                    spotify_connected: true
-                }, (err) => {
-                    if (err) console.error(err)
-                    else {
-                        res.successful = true
-                        next()  
-                    } 
-                })
-            })
-        }
-        else
-            next()
+    Users.findOneAndUpdate({ spotify_state: req.query.state }, {
+        spotify_state: '',
+        spotify_token: spotify_data.body['access_token'],
+        spotify_refresh_token: spotify_data.body['refresh_token'],
+        spotify_connected: true
+    }, (err, doc) => {
+        if(err) console.log(err)
+        if(doc) res.successful = true
+        next()
     })
 }
 
