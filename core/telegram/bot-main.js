@@ -37,7 +37,7 @@ const loggedInMenu = new inlineMenu(
 )
 //Group Menu 
 const groupMenu = new inlineMenu(
-    ctx => `<b><code>${ctx.groupCode}</code></b> \n Share the code to let your friends \n join the group`,
+    ctx => `<code>${ctx.groupCode}</code> \n Share the code to let your friends \n join the group`,
     ctx => Markup.inlineKeyboard([
         Markup.callbackButton('Disband Group', 'close-group')
     ])
