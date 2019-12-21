@@ -18,9 +18,9 @@ function newUser(telegram_id) {
 
 function getAuthURL(telegram_id) {
     var state = Math.random().toString(31).substring(2, 10) + Math.random().toString(31).substring(2, 10);
-    Users.findOne({ telegram_id: telegram_id }, async (err, res) => {
+    Users.findOne({ telegram_id: telegram_id }, async (err, doc) => {
         if (err) console.error(err);
-        if (res != null) {
+        if (doc != null) {
             Users.findOneAndUpdate({ telegram_id: telegram_id }, {
                 spotify_state: state
             }, (err) => {
@@ -32,9 +32,9 @@ function getAuthURL(telegram_id) {
 }
 
 function isConnected(telegram_id, callback) {
-    Users.findOne({ telegram_id: telegram_id, spotify_connected: true }, (err, res) => {
+    Users.findOne({ telegram_id: telegram_id, spotify_connected: true }, (err, doc) => {
         if (err) console.error(err);
-        callback(res)
+        callback(doc)
     })
 }
 

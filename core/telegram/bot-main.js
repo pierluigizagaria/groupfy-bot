@@ -5,6 +5,7 @@ const inlineMenu = require('./inline-menu')
 const CustomContext = require('./inline-menu-ctx')
 const accounts = require('../spotify/accounts-manager')
 const spotifyEndpoint = require('../spotify/api-manager')
+const groups = require('../groups-manager')
 
 const bot = new Telegraf(process.env.TELEGRAM_BOT_TOKEN, { contextType: CustomContext })
 
@@ -60,6 +61,7 @@ bot.action('spotify-account-menu', async (ctx) => {
 
 bot.action('create-group', async (ctx) => {
     ctx.editMenu(groupMenu)
+    groups.create(ctx.from.id)
 })
 
 bot.action('spotify-done', async (ctx) => {

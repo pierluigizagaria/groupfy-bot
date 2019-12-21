@@ -6,7 +6,10 @@ const spotifyAuth = require('./core/routes/spotify-auth')
 
 const app = express()
 app.use(express.static(__dirname + '/core/routes/public'));
-app.use('/', spotifyAuth)
+app.use('/auth/spotify', spotifyAuth)
+app.get('/*', function (req, res) {
+    res.redirect('/');
+})
 
 mongoose.connect(process.env.MONGODB_URL, {
     useNewUrlParser: true,
@@ -20,7 +23,6 @@ db.on('error', (error) => {
     throw new Error('Could not connect to MongoDB: ' + error)
 })
 db.once('open', () => { console.log('Connected to MongoDB.') });
-
 bot.launch().then( console.log('Telegram bot started.') )
 
 const server = app.listen(process.env.PORT, () => {
