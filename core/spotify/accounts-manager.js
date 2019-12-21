@@ -43,15 +43,27 @@ function connect(req, res, next) {
         next()
     }
     else
-    Users.findOneAndUpdate({ spotify_state: req.query.state }, {
-        spotify_state: '',
-        spotify_token: spotify_data.body['access_token'],
-        spotify_refresh_token: spotify_data.body['refresh_token'],
-        spotify_connected: true
-    }, (err, doc) => {
-        if(err) console.log(err)
-        if(doc) res.successful = true
-        next()
+    Users.findOne({ spotify_state: req.query.state }, (err, user) => {
+        if (err) console.error(err)
+        if (user != null) {
+            spotifyApi.authorizationCodeGrant(req.query.code).then((spotify_data, err) => {
+                if (err) console.error(err)
+                user.updateOne({
+                    spotify_state: '',
+                    spotify_token: spotify_data.body['access_token'],
+                    spotify_refresh_token: spotify_data.body['refresh_token'],
+                    spotify_connected: true
+                }, (err) => {
+                    if (err) console.error(err)
+                    else {
+                        res.successful = true
+                        next()  
+                    } 
+                })
+            })
+        }
+        else
+            next()
     })
 }
 
