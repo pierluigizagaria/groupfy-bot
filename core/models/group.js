@@ -1,11 +1,11 @@
 const mongoose = require('mongoose')
 
 const groupSchema = new mongoose.Schema({
-    creator_id: {
+    group_id = {
         type: String,
-        unique: true,
-        required: true
+        default: Math.random().toString(31).substring(2, 7).toUpperCase
     },
+    creator_id: String,
     users: [String],
     query: [String],
 })
