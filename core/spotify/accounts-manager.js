@@ -55,10 +55,8 @@ function connect(req, res, next) {
                     spotify_connected: true
                 }, (err) => {
                     if (err) console.error(err)
-                    else {
-                        res.successful = true
-                        next()  
-                    } 
+                    else res.successful = true
+                    next()
                 })
             })
         }
