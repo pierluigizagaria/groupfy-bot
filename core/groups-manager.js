@@ -12,8 +12,7 @@ function create( telegram_id , callback) {
                 callback(doc)
             })
         }
-        else
-            callback(doc)
+        else callback(doc)
     })
 }
 

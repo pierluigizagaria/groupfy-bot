@@ -42,8 +42,7 @@ function connect(req, res, next) {
         res.successful = false
         next()
     }
-    else
-    Users.findOne({ spotify_state: req.query.state }, (err, user) => {
+    else Users.findOne({ spotify_state: req.query.state }, (err, user) => {
         if (err) console.error(err)
         if (user != null) {
             spotifyApi.authorizationCodeGrant(req.query.code).then((spotify_data, err) => {
@@ -60,8 +59,7 @@ function connect(req, res, next) {
                 })
             })
         }
-        else
-            next()
+        else next()
     })
 }
 

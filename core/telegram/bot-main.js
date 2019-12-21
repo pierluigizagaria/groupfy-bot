@@ -72,8 +72,7 @@ bot.action('create-group', async (ctx) => {
 bot.action('spotify-done', async (ctx) => {
     accounts.isConnected(ctx.from.id, (res) => {
         if (res) ctx.answerCbQuery('Your Spotify account has been connected.')
-        else
-            ctx.answerCbQuery('Could not connect to your spotify account.')
+        else ctx.answerCbQuery('Could not connect to your spotify account.')
         ctx.spotifyLogged = res != null ? true : false
         ctx.editMenu(mainMenu)
     })
