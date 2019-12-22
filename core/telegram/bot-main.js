@@ -1,10 +1,13 @@
 require('dotenv').config()
 const Telegraf = require('telegraf')
+const session = require('telegraf/session')
+const Stage = require('telegraf/stage')
+const Scene = require('telegraf/scenes/base')
 const Markup = require('telegraf/markup')
-const inlineMenu = require('./inline-menu')
-const CustomContext = require('./inline-menu-ctx')
+
+const {CustomContext, inlineMenu} = require('./inline-menu-ctx')
+const inlineQuery = require('./inline-queries')
 const accounts = require('../spotify/accounts-manager')
-const spotifyEndpoint = require('../spotify/api-manager')
 const groups = require('../groups-manager')
 
 const bot = new Telegraf(process.env.TELEGRAM_BOT_TOKEN, { contextType: CustomContext })
@@ -37,9 +40,9 @@ const loggedInMenu = new inlineMenu(
 )
 //Group Menu 
 const groupMenu = new inlineMenu(
-    ctx => `<code>${ctx.groupCode}</code> \n Share the code to let your friends \n join the group`,
+    ctx => `<code>${ctx.groupCode}</code>\nShare the code to let your friends\njoin the group`,
     ctx => Markup.inlineKeyboard([
-        Markup.callbackButton('Disband Group', 'close-group')
+        Markup.callbackButton('Disband Group', 'disband-group')
     ])
 )
 
@@ -63,7 +66,7 @@ bot.action('spotify-account-menu', async (ctx) => {
 
 bot.action('create-group', async (ctx) => {
     groups.create(ctx.from.id, (doc) => {
-        ctx.groupCode = doc.owner
+        ctx.groupCode = doc.code
         ctx.editMenu(groupMenu)
         ctx.answerCbQuery('')
     })
@@ -92,6 +95,16 @@ bot.action('spotify-logout', async (ctx) => {
     })
 })
 
+bot.action('disband-group', async (ctx) => {
+    groups.disband(ctx.from.id, () => {
+        ctx.answerCbQuery('Your group has been disbanded.')
+        accounts.isConnected(ctx.from.id, (res) => {
+            ctx.spotifyLogged = res != null ? true : false
+            ctx.editMenu(mainMenu)
+        })
+    })
+})
+
 bot.start(async (ctx) => {
     accounts.newUser(ctx.from.id)
     accounts.isConnected(ctx.from.id, (res) => {
@@ -100,24 +113,6 @@ bot.start(async (ctx) => {
     })
 })
 
-bot.inlineQuery(/[\w]/, async ( ctx ) => {
-    spotifyEndpoint.getTracks(ctx.inlineQuery.query, (tracks) => {
-        const results = tracks.map(({ id, title, artists, thumbnail, url}) => ({
-            type: 'article',
-            id: id,
-            title: title,
-            description: artists,
-            thumb_url: thumbnail,
-            input_message_content: {
-                message_text: `<pre>${title + ', ' + artists}</pre>`,
-                parse_mode: 'HTML'
-            },
-            reply_markup: Markup.inlineKeyboard([
-                Markup.urlButton('Open on Spotify', url)
-            ])
-        }))
-        ctx.answerInlineQuery(results)
-    })
-})
+bot.inlineQuery(/[\w]/, async (ctx) => inlineQuery.answerTracks(ctx))
 
 module.exports = bot

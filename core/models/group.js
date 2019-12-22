@@ -7,7 +7,10 @@ const groupSchema = new mongoose.Schema({
         unique: true,
         required: true
     },
-    users: [String],
+    users: {
+        type: [String],
+        unique: true
+    },
     query: [String],
 })
 

@@ -15,4 +15,14 @@ class CustomContext extends Telegraf.Context {
     }
 }
 
-module.exports = CustomContext
+class inlineMenu {
+    constructor(html, inlineKeyboardMarkup) {
+        this.html = html
+        this.inlineKeyboardMarkup = inlineKeyboardMarkup
+    }
+}
+
+module.exports = {
+    CustomContext,
+    inlineMenu
+}
