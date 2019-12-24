@@ -1,28 +1,22 @@
 const Telegraf = require('telegraf')
 const Extra = require('telegraf/extra')
 
-class CustomContext extends Telegraf.Context {
+class InlineMenuContext extends Telegraf.Context {
     constructor(update, telegram, options) {
         super(update, telegram, options)
     }
 
     initMenu(inlineMenu) {
-        super.reply(inlineMenu.html(this), Extra.HTML().markup(inlineMenu.inlineKeyboardMarkup(this)))
+        inlineMenu.getMessage(this, (html, markup) => {
+            this.reply(html, Extra.HTML().markup(markup))
+        })
     }
 
     editMenu(inlineMenu) {
-        super.editMessageText(inlineMenu.html(this), Extra.HTML().markup(inlineMenu.inlineKeyboardMarkup(this)))
+        inlineMenu.getMessage(this, (html, markup) => {
+            this.editMessageText(html, Extra.HTML().markup(markup))
+        })
     }
 }
 
-class inlineMenu {
-    constructor(html, inlineKeyboardMarkup) {
-        this.html = html
-        this.inlineKeyboardMarkup = inlineKeyboardMarkup
-    }
-}
-
-module.exports = {
-    CustomContext,
-    inlineMenu
-}
+module.exports = InlineMenuContext

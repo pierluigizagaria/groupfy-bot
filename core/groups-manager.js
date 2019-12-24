@@ -5,20 +5,30 @@ function create(telegram_id, callback) {
         if (err) console.error(err)
         if (doc == null) {
             new Group({
+                code: Math.random().toString(31).toUpperCase().substring(2, 7),
                 owner: telegram_id,
-                code: Math.random().toString(31).toUpperCase().substring(2, 7)
+                users: [telegram_id],
             }).save((err, doc) => {
                 if (err) console.error(err)
-                callback(doc)
+                callback(doc, alreadyExists = false)
             })
         }
-        else callback(doc)
+        else callback(doc, alreadyExists = true)
     })
 }
 
-function join(telegram_id, code, callback) {
-    Group.findOneAndUpdate({ code }, {
+function join({telegram_id, code }, callback) {
+    Group.findOneAndUpdate({ code: code }, {
         $push: { users: telegram_id }
+    }, (err, doc) => {
+        if (err) console.error(err)
+        callback(doc)
+    })
+}
+
+function leave({ telegram_id }, callback){
+    Group.findOneAndUpdate({ users: telegram_id }, {
+        $pull: { users: telegram_id }
     }, (err, doc) => {
         if (err) console.error(err)
         callback(doc)
@@ -32,8 +42,17 @@ function disband(telegram_id, callback) {
     })
 }
 
+function getGroup(telegram_id, callback) {
+    Group.findOne({ users: telegram_id }, (err, doc) => {
+        if (err) console.err(err)
+        callback(doc, isOwner = doc ? telegram_id == doc.owner : false)
+    })
+}
+
 module.exports = {
     create,
     join,
-    disband
+    leave,
+    disband,
+    getGroup
 }
