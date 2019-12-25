@@ -17,7 +17,7 @@ function answerTracks(ctx) {
                 Markup.urlButton('Open on Spotify', url)
             ])
         }))
-        ctx.answerInlineQuery(results)
+        return ctx.answerInlineQuery(results)
     })
 }
 

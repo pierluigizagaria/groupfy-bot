@@ -19,6 +19,14 @@ function getTracks(query, callback) {
     })
 }
 
+function updateQueue({queue}){
+    api.play({uris: queue}, (err, res) => {
+        if (err) console.error(err)
+        console.log
+    })
+
+}
+
 module.exports = {
     getTracks
 }

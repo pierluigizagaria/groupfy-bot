@@ -8,7 +8,7 @@ function newUser(telegram_id) {
         if (res == null) {
             new Users({
                 telegram_id: telegram_id
-            }).save( (err, doc) => {
+            }).save((err, doc) => {
                 if (err) console.log(err)
             })
         }
@@ -38,7 +38,7 @@ function isConnected(telegram_id, callback) {
 }
 
 function connect(req, res, next) {
-    if (!req.query.state || !req.query.code){
+    if (!req.query.state || !req.query.code) {
         res.successful = false
         next()
     }
@@ -64,7 +64,7 @@ function connect(req, res, next) {
 }
 
 function disconnect(telegram_id, callback) {
-    Users.findOneAndUpdate({telegram_id: telegram_id, spotify_connected: true}, {
+    Users.findOneAndUpdate({ telegram_id: telegram_id, spotify_connected: true }, {
         spotify_connected: false,
         spotify_token: '',
         spotify_refresh_token: '',

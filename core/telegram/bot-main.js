@@ -30,8 +30,8 @@ joinScene.on('text', (ctx) => {
     })
 })
 
-groupScene.on('text', (ctx) => {
-    ctx.reply('Command Received!')
+groupScene.on('message', (ctx) => {
+    console.log(ctx.update.message.reply_markup.inline_keyboard[0][0].url)
 })
 
 const bot = new Telegraf(process.env.TELEGRAM_BOT_TOKEN, { contextType: InlineMenuContext })
@@ -87,9 +87,9 @@ const groupMenu = new InlineMenu({
             next()
         })
     },
-    html: (ctx) => ctx.session.owner ? 
-    `<code>${ctx.session.code}</code>\nShare the code to let your friends\njoin the group` :
-    `You joined the group: <code>${ctx.session.code}</code>`,
+    html: (ctx) => ctx.session.owner ?
+        `<code>${ctx.session.code}</code>\nShare the code to let your friends\njoin the group` :
+        `You joined the group: <code>${ctx.session.code}</code>`,
     inlineKeyboardMarkup: (ctx) => Markup.inlineKeyboard([
         Markup.callbackButton('Disband Group', 'disband-group', !ctx.session.owner),
         Markup.callbackButton('Leave Group', 'leave-group', ctx.session.owner)
@@ -134,15 +134,16 @@ bot.action('create-group', async (ctx) => {
     groups.getGroup(ctx.from.id, (doc, isOwner) => {
         if (doc == null) {
             groups.create(ctx.from.id, (doc) => {
-                ctx.editMenu(groupMenu)
+                ctx.initMenu(groupMenu)
                 ctx.scene.enter('group-scene')
                 ctx.answerCbQuery()
             })
-        } else {
-            ctx.editMenu(groupMenu)
+        } else if (isOwner) {
+            ctx.initMenu(groupMenu)
             ctx.scene.enter('group-scene')
-            ctx.answerCbQuery('You already joined a group!')
-            
+            ctx.answerCbQuery('You already created a group!')
+        } else {
+            ctx.answerCbQuery('You can\'t create a group if you\'re already in one!')
         }
     })
 })
@@ -153,27 +154,27 @@ bot.action('join-group', async (ctx) => {
             ctx.reply('What is the group code?', Extra.markup(Markup.forceReply()))
             ctx.scene.enter('join-scene')
             ctx.answerCbQuery()
-        } else {
-            ctx.editMenu(groupMenu)
+        } else if (!isOwner) {
+            ctx.initMenu(groupMenu)
             ctx.scene.enter('group-scene')
             ctx.answerCbQuery('You already joined a group!')
+        } else {
+            ctx.answerCbQuery('You can\'t join a group if you\'re already in one!')
         }
     })
 })
 
 bot.action('disband-group', async (ctx) => {
     groups.disband(ctx.from.id, (doc) => {
-        doc ? ctx.answerCbQuery('Your group has been disbanded.') : ctx.answerCbQuery('Your group was already disbanded.')
+        doc ? ctx.editMessageText('Your group has been disbanded.') : ctx.editMessageText('Your group was already disbanded.')
         ctx.scene.leave('group-scene')
-        ctx.editMenu(mainMenu)
     })
 })
 
 bot.action('leave-group', async (ctx) => {
     groups.leave({ telegram_id: ctx.from.id }, (doc) => {
-        doc ? ctx.answerCbQuery('You left the group') : ctx.answerCbQuery('You already left the group!')
+        doc ? ctx.editMessageText('You left the group') : ctx.editMessageText('You already left this group.')
         ctx.scene.leave('group-scene')
-        ctx.editMenu(mainMenu)
     })
 })
 
