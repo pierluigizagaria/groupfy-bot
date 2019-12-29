@@ -1,4 +1,5 @@
-const api = require('./spotify-api')
+const api = require('./api-setup')
+const accounts = require('../accounts')
 
 function getTracks(query, callback) {
     api.clientCredentialsGrant({}, (error, token_res) => {
@@ -19,14 +20,18 @@ function getTracks(query, callback) {
     })
 }
 
-function updateQueue({queue}){
-    api.play({uris: queue}, (err, res) => {
-        if (err) console.error(err)
-        console.log
+function getPlayingTrack(telegram_id) {
+    accounts.getUser(telegram_id, (doc) => {
+        api.setRefreshToken(doc.spotify_refresh_token)
+        api.setAccessToken(doc.spotify_token)
+        api.getMyCurrentPlayingTrack((res) => {
+            console.log(res)
+        })
     })
-
 }
 
+
 module.exports = {
-    getTracks
+    getTracks,
+    getPlayingTrack
 }

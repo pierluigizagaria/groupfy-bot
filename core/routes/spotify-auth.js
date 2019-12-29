@@ -1,5 +1,5 @@
 const express = require('express')
-const accounts = require('../spotify/accounts-manager')
+const accounts = require('../accounts')
 const router = express.Router()
 
 router.get('/callback', accounts.connect, (req, res) => {

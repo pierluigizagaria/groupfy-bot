@@ -1,17 +1,18 @@
-const spotifyApi = require('./spotify-api')
-const Users = require('../models/user')
+const spotify = require('./spotify/api-setup')
+const Users = require('./models/user')
 const scopes = ['user-read-playback-state', 'user-modify-playback-state', 'user-read-currently-playing']
 
-function newUser(telegram_id) {
-    Users.findOne({ telegram_id: telegram_id }, (err, res) => {
+function getUser(telegram_id, callback) {
+    Users.findOne({ telegram_id: telegram_id }, (err, doc) => {
         if (err) console.error(err);
-        if (res == null) {
+        if (doc == null) {
             new Users({
                 telegram_id: telegram_id
             }).save((err, doc) => {
                 if (err) console.log(err)
+                callback(doc)
             })
-        }
+        } else callback(doc)
     })
 }
 
@@ -27,13 +28,28 @@ function getAuthURL(telegram_id) {
             })
         }
     })
-    return spotifyApi.createAuthorizeURL(scopes, state, true)
+    return spotify.createAuthorizeURL(scopes, state, true)
 }
 
 function isConnected(telegram_id, callback) {
     Users.findOne({ telegram_id: telegram_id, spotify_connected: true }, (err, doc) => {
         if (err) console.error(err);
         callback(doc)
+    })
+}
+
+function refreshToken(telegram_id) {
+    Users.findOne({telegram_id: telegram_id}, (err, doc) => {
+        if (err) console.error(err)
+        spotify.setRefreshToken(doc.spotify_refresh_token)
+        spotify.refreshAccessToken((err, res) => {
+            if (err) console.error(err)
+            doc.updateOne({
+                spotify_token: res.body.access_token
+            }, (err) => {
+                if (err) console.error(err)
+            })
+        })
     })
 }
 
@@ -45,12 +61,12 @@ function connect(req, res, next) {
     else Users.findOne({ spotify_state: req.query.state }, (err, user) => {
         if (err) console.error(err)
         if (user != null) {
-            spotifyApi.authorizationCodeGrant(req.query.code).then((spotify_data, err) => {
+            spotify.authorizationCodeGrant(req.query.code).then((spotify_data, err) => {
                 if (err) console.error(err)
                 user.updateOne({
                     spotify_state: '',
-                    spotify_token: spotify_data.body['access_token'],
-                    spotify_refresh_token: spotify_data.body['refresh_token'],
+                    spotify_token: spotify_data.body.access_token,
+                    spotify_refresh_token: spotify_data.body.refresh_token,
                     spotify_connected: true
                 }, (err) => {
                     if (err) console.error(err)
@@ -75,8 +91,9 @@ function disconnect(telegram_id, callback) {
 }
 
 module.exports = {
-    newUser,
+    getUser,
     getAuthURL,
+    refreshToken,
     connect,
     isConnected,
     disconnect

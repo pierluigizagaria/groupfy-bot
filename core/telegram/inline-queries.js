@@ -1,4 +1,4 @@
-const spotifyEndpoint = require('../spotify/api-manager')
+const spotifyEndpoint = require('../spotify/actions')
 const Markup = require('telegraf/markup')
 
 function answerTracks(ctx) {

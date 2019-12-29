@@ -9,8 +9,8 @@ const Extra = require('telegraf/extra')
 const InlineMenuContext = require('./inline-menu-ctx')
 const InlineMenu = require('./inline-menu')
 const inlineQuery = require('./inline-queries')
-const accounts = require('../spotify/accounts-manager')
-const groups = require('../groups-manager')
+const accounts = require('../accounts')
+const groups = require('../groups')
 
 const joinScene = new Scene('join-scene')
 const groupScene = new Scene('group-scene')
@@ -31,7 +31,7 @@ joinScene.on('text', (ctx) => {
 })
 
 groupScene.on('message', (ctx) => {
-    console.log(ctx.update.message.reply_markup.inline_keyboard[0][0].url)
+    accounts.refreshToken(ctx.from.id)
 })
 
 const bot = new Telegraf(process.env.TELEGRAM_BOT_TOKEN, { contextType: InlineMenuContext })
@@ -39,7 +39,9 @@ bot.use(Session())
 bot.use(stage.middleware())
 
 bot.start(async (ctx) => {
-    accounts.newUser(ctx.from.id)
+    accounts.getUser(ctx.from.id, (doc) => {
+        console.log(`User ${doc.telegram_id} started the bot.`)
+    })
     ctx.initMenu(mainMenu)
 })
 
