@@ -49,24 +49,6 @@ function getGroup(telegram_id, callback) {
     })
 }
 
-function queue({ telegram_id, spotify_uri }, callback) {
-    Group.findOneAndUpdate({ users: telegram_id }, {
-        $push: { queue: spotify_uri }
-    }, (err, doc) => {
-        if (err) console.error(err)
-        callback(doc)
-    })
-}
-
-function skip({ telegram_id }, callback) {
-    Group.findOneAndUpdate({ users: telegram_id }, {
-        $pop: { queue: -1 }
-    }, (err, doc) => {
-        if (err) console.log(err)
-        callback(doc)
-    })
-}
-
 module.exports = {
     create,
     join,

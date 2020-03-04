@@ -8,7 +8,6 @@ const groupSchema = new mongoose.Schema({
     },
     owner: String,
     users: [String],
-    query: [String],
 })
 
 module.exports = mongoose.model('Group', groupSchema)
