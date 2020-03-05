@@ -17,6 +17,41 @@ const joinScene = new Scene('join-scene')
 const groupScene = new Scene('group-scene')
 const stage = new Stage([joinScene, groupScene])
 
+joinScene.on('text', (ctx) => {
+    groups.join({ telegram_id: ctx.from.id, code: ctx.message.text }, (doc) => {
+        if (doc) {
+            ctx.initMenu(groupMenu)
+            ctx.scene.leave('join-scene')
+            ctx.scene.enter('group-scene')
+        }
+        else {
+            ctx.reply('There is no group with this code :(')
+            ctx.scene.leave()
+        }
+    })
+})
+
+groupScene.start((ctx) => {
+    ctx.initMenu(groupMenu)
+})
+
+groupScene.on('message', (ctx) => {
+    if (typeof ctx.update.message.reply_markup !== 'undefined' && typeof ctx.update.message.reply_markup.inline_keyboard[0][0].url !== 'undefined') {
+        let url = ctx.update.message.reply_markup.inline_keyboard[0][0].url
+        groups.getGroup(ctx.from.id, (group) => {
+            if (group) {
+                let uri = `spotify:track:${url.match(/(?<=https:\/\/open.spotify.com\/track\/).+/)}`
+                spotify.addToQueue(group.owner, uri, (err) => {
+                    ctx.reply(err ? 'Could not queue songs if there are no playing devices.' : 'The song has been added to the queue.')
+                })
+            } else {
+                ctx.scene.leave('group-scene')
+                ctx.reply('The group is disbanded.')
+            }
+        })
+    }
+})
+
 const bot = new Telegraf(process.env.TELEGRAM_BOT_TOKEN, { contextType: InlineMenuContext })
 bot.use(Session())
 bot.use(stage.middleware())
@@ -74,36 +109,36 @@ const groupMenu = new InlineMenu({
     ])
 })
 
-bot.start(async (ctx) => {
+bot.start((ctx) => {
     accounts.getUser(ctx.from.id, (doc) => {
         console.log(`User ${doc.telegram_id} started the bot.`)
     })
     ctx.initMenu(mainMenu)
 })
 
-bot.action('main-menu', async (ctx) => {
+bot.action('main-menu', (ctx) => {
     ctx.editMenu(mainMenu)
     ctx.answerCbQuery()
 })
 
-bot.action('connect-spotify-menu', async (ctx) => {
+bot.action('connect-spotify-menu', (ctx) => {
     ctx.editMenu(connectSpotifyMenu)
     ctx.answerCbQuery()
 })
 
-bot.action('spotify-account-menu', async (ctx) => {
+bot.action('spotify-account-menu', (ctx) => {
     ctx.editMenu(loggedInMenu)
     ctx.answerCbQuery()
 })
 
-bot.action('spotify-done', async (ctx) => {
+bot.action('spotify-done', (ctx) => {
     accounts.isConnected(ctx.from.id, (res) => {
         ctx.answerCbQuery(res ? 'Your Spotify account has been connected.' : 'Could not connect to your spotify account.')
     })
     ctx.editMenu(mainMenu)
 })
 
-bot.action('spotify-logout', async (ctx) => {
+bot.action('spotify-logout', (ctx) => {
     accounts.disconnect(ctx.from.id, (err) => {
         if (err) {
             ctx.answerCbQuery('An error occured, please try again.')
@@ -114,7 +149,7 @@ bot.action('spotify-logout', async (ctx) => {
     })
 })
 
-bot.action('create-group', async (ctx) => {
+bot.action('create-group', (ctx) => {
     groups.getGroup(ctx.from.id, (doc, isOwner) => {
         if (doc == null) {
             groups.create(ctx.from.id, (doc) => {
@@ -132,7 +167,7 @@ bot.action('create-group', async (ctx) => {
     })
 })
 
-bot.action('join-group', async (ctx) => {
+bot.action('join-group', (ctx) => {
     groups.getGroup(ctx.from.id, (doc, isOwner) => {
         if (doc == null) {
             ctx.editMessageText('What is the group code?', Extra.markup())
@@ -148,7 +183,7 @@ bot.action('join-group', async (ctx) => {
     })
 })
 
-bot.action('disband-group', async (ctx) => {
+bot.action('disband-group', (ctx) => {
     groups.disband(ctx.from.id, (doc) => {
         doc ? ctx.editMenu(mainMenu) : ctx.editMessageText('Your group was already disbanded.')
         ctx.scene.leave('group-scene')
@@ -156,7 +191,7 @@ bot.action('disband-group', async (ctx) => {
     })
 })
 
-bot.action('leave-group', async (ctx) => {
+bot.action('leave-group', (ctx) => {
     groups.leave({ telegram_id: ctx.from.id }, (doc) => {
         doc ? ctx.editMenu(mainMenu) : ctx.editMessageText('You already left this group.')
         ctx.scene.leave('group-scene')
@@ -164,42 +199,6 @@ bot.action('leave-group', async (ctx) => {
     })
 })
 
-joinScene.on('text', async (ctx) => {
-    groups.join({ telegram_id: ctx.from.id, code: ctx.message.text }, (doc) => {
-        if (doc) {
-            ctx.initMenu(groupMenu)
-            ctx.scene.leave('join-scene')
-            ctx.scene.enter('group-scene')
-        }
-        else {
-            ctx.reply('There is no group with this code :(')
-            ctx.initMenu(mainMenu)
-            ctx.scene.leave()
-        }
-    })
-})
-
-groupScene.on('message', async (ctx) => {
-    if (typeof ctx.update.message.reply_markup !== 'undefined' && typeof ctx.update.message.reply_markup.inline_keyboard[0][0].url !== 'undefined') {
-        let url = ctx.update.message.reply_markup.inline_keyboard[0][0].url
-        groups.getGroup(ctx.from.id, (group) => {
-            if (group) {
-                let uri = `spotify:track:${url.match(/(?<=https:\/\/open.spotify.com\/track\/).+/)}`
-                spotify.addToQueue(group.owner, uri, (err) => {
-                    ctx.reply(err ? 'Could not queue songs if there are no playing devices.' : 'The song has been added to the queue.')
-                })
-            } else {
-                ctx.scene.leave('group-scene')
-                ctx.reply('The group was disbanded')
-            }
-        })
-    }
-})
-
-groupScene.start(async (ctx) => {
-    ctx.initMenu(groupMenu)
-})
-
-bot.inlineQuery(/[\w]/, async (ctx) => inlineQuery.answerTracks(ctx))
+bot.inlineQuery(/[\w]/, (ctx) => inlineQuery.answerTracks(ctx))
 
 module.exports = bot
