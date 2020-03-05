@@ -37,8 +37,13 @@ function getSpotifyAccount(telegram_id, callback) {
         else if (doc) {
             spotify.setRefreshToken(doc.refresh_token)
             spotify.refreshAccessToken((err, data) => {
-                if (err) console.error(err)
-                else {
+                if (err) {
+                    console.error(err)
+                    console.log(`User ${doc.telegram_id} probably revoked Spotify premissions.`)
+                    disconnect(doc.telegram_id, (err) => {
+                        if (err) console.error(err)
+                    })
+                } else {
                     spotify.setAccessToken(data.body['access_token'])
                     spotify.setRefreshToken(data.body['refresh_token'])
                     spotify.getMe((err, spotify_data) => {
