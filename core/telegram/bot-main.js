@@ -118,12 +118,12 @@ bot.action('create-group', (ctx) => {
     groups.getGroup(ctx.from.id, (doc, isOwner) => {
         if (doc == null) {
             groups.create(ctx.from.id, (doc) => {
-                ctx.editMenu(groupMenu)
+                ctx.initMenu(groupMenu)
                 ctx.scene.enter('group-scene')
                 ctx.answerCbQuery()
             })
         } else if (isOwner) {
-            ctx.editMenu(groupMenu)
+            ctx.initMenu(groupMenu)
             ctx.scene.enter('group-scene')
             ctx.answerCbQuery('Hai già creato un gruppo!')
         } else {
@@ -135,11 +135,11 @@ bot.action('create-group', (ctx) => {
 bot.action('join-group', (ctx) => {
     groups.getGroup(ctx.from.id, (doc, isOwner) => {
         if (doc == null) {
-            ctx.editMessageText('Qual è il codice del gruppo?', Extra.markup())
+            ctx.reply('Qual è il codice del gruppo?', Extra.markup(Extra.Markup.forceReply))
             ctx.scene.enter('join-scene')
             ctx.answerCbQuery()
         } else if (!isOwner) {
-            ctx.editMenu(groupMenu)
+            ctx.initMenu(groupMenu)
             ctx.scene.enter('group-scene')
             ctx.answerCbQuery('Sei già in un gruppo!')
         } else {
@@ -150,7 +150,7 @@ bot.action('join-group', (ctx) => {
 
 bot.action('disband-group', (ctx) => {
     groups.disband(ctx.from.id, (doc) => {
-        doc ? ctx.editMenu(mainMenu) : ctx.editMessageText('Hai già sciolto questo gruppo.')
+        doc ? ctx.editMessageText('Il gruppo è stato sciolto.') : ctx.editMessageText('Hai già sciolto questo gruppo.')
         ctx.scene.leave('group-scene')
         ctx.answerCbQuery()
     })
@@ -158,7 +158,7 @@ bot.action('disband-group', (ctx) => {
 
 bot.action('leave-group', (ctx) => {
     groups.leave({ telegram_id: ctx.from.id }, (doc) => {
-        doc ? ctx.editMenu(mainMenu) : ctx.editMessageText('Sei già uscito questo gruppo.')
+        doc ? ctx.editMessageText('Sei uscito dal gruppo.') : ctx.editMessageText('Sei già uscito questo gruppo.')
         ctx.scene.leave('group-scene')
         ctx.answerCbQuery()
     })
