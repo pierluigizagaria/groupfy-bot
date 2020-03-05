@@ -17,52 +17,9 @@ const joinScene = new Scene('join-scene')
 const groupScene = new Scene('group-scene')
 const stage = new Stage([joinScene, groupScene])
 
-joinScene.on('text', async (ctx) => {
-    groups.join({ telegram_id: ctx.from.id, code: ctx.message.text }, (doc) => {
-        if (doc) {
-            ctx.initMenu(groupMenu)
-            ctx.scene.leave('join-scene')
-            ctx.scene.enter('group-scene')
-        }
-        else {
-            ctx.reply('There is no group with this code :(')
-            ctx.initMenu(mainMenu)
-            ctx.scene.leave()
-        }
-    })
-})
-
-groupScene.on('message', async (ctx) => {
-    if (ctx.update.message.reply_markup.inline_keyboard[0][0].url != undefined) {
-        let url = ctx.update.message.reply_markup.inline_keyboard[0][0].url
-        groups.getGroup(ctx.from.id, (group) => {
-            if (group) {
-                let uri = `spotify:track:${url.match(/(?<=https:\/\/open.spotify.com\/track\/).+/)}`
-                spotify.addToQueue(group.owner, uri, (err) => {
-                    ctx.reply(err ? 'Could not queue songs if there are no playing devices.' : 'The song has been added to the queue.')
-                })
-            } else {
-                ctx.scene.leave('group-scene')
-                ctx.reply('The group was disbanded')
-            }
-        })
-    }
-})
-
-groupScene.start(async (ctx) => {
-    ctx.initMenu(groupMenu)
-})
-
 const bot = new Telegraf(process.env.TELEGRAM_BOT_TOKEN, { contextType: InlineMenuContext })
 bot.use(Session())
 bot.use(stage.middleware())
-
-bot.start(async (ctx) => {
-    accounts.getUser(ctx.from.id, (doc) => {
-        console.log(`User ${doc.telegram_id} started the bot.`)
-    })
-    ctx.initMenu(mainMenu)
-})
 
 //Main Menu
 const mainMenu = new InlineMenu({
@@ -115,6 +72,13 @@ const groupMenu = new InlineMenu({
         Markup.callbackButton('Disband Group', 'disband-group', !ctx.session.owner),
         Markup.callbackButton('Leave Group', 'leave-group', ctx.session.owner)
     ])
+})
+
+bot.start(async (ctx) => {
+    accounts.getUser(ctx.from.id, (doc) => {
+        console.log(`User ${doc.telegram_id} started the bot.`)
+    })
+    ctx.initMenu(mainMenu)
 })
 
 bot.action('main-menu', async (ctx) => {
@@ -198,6 +162,43 @@ bot.action('leave-group', async (ctx) => {
         ctx.scene.leave('group-scene')
         ctx.answerCbQuery()
     })
+})
+
+
+joinScene.on('text', async (ctx) => {
+    groups.join({ telegram_id: ctx.from.id, code: ctx.message.text }, (doc) => {
+        if (doc) {
+            ctx.initMenu(groupMenu)
+            ctx.scene.leave('join-scene')
+            ctx.scene.enter('group-scene')
+        }
+        else {
+            ctx.reply('There is no group with this code :(')
+            ctx.initMenu(mainMenu)
+            ctx.scene.leave()
+        }
+    })
+})
+
+groupScene.on('message', async (ctx) => {
+    if (ctx.update.message.reply_markup.inline_keyboard[0][0].url != undefined) {
+        let url = ctx.update.message.reply_markup.inline_keyboard[0][0].url
+        groups.getGroup(ctx.from.id, (group) => {
+            if (group) {
+                let uri = `spotify:track:${url.match(/(?<=https:\/\/open.spotify.com\/track\/).+/)}`
+                spotify.addToQueue(group.owner, uri, (err) => {
+                    ctx.reply(err ? 'Could not queue songs if there are no playing devices.' : 'The song has been added to the queue.')
+                })
+            } else {
+                ctx.scene.leave('group-scene')
+                ctx.reply('The group was disbanded')
+            }
+        })
+    }
+})
+
+groupScene.start(async (ctx) => {
+    ctx.initMenu(groupMenu)
 })
 
 bot.inlineQuery(/[\w]/, async (ctx) => inlineQuery.answerTracks(ctx))
