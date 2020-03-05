@@ -46,10 +46,9 @@ function connect(req, res, next) {
     else Users.findOne({ spotify_state: req.query.state }, (err, user) => {
         if (err) console.error(err)
         if (user != null) {
-            spotify.authorizationCodeGrant(req.query.code, (spotify_data, err) => {
+            spotify.authorizationCodeGrant(req.query.code).then((spotify_data, err) => {
                 if (err) console.error(err)
                 console.log(spotify_data)
-                
                 user.updateOne({
                     spotify_state: '',
                     spotify_token: spotify_data.body.access_token,
