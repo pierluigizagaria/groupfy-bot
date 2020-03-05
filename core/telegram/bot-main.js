@@ -17,41 +17,6 @@ const joinScene = new Scene('join-scene')
 const groupScene = new Scene('group-scene')
 const stage = new Stage([joinScene, groupScene])
 
-joinScene.on('text', (ctx) => {
-    groups.join({ telegram_id: ctx.from.id, code: ctx.message.text }, (doc) => {
-        if (doc) {
-            ctx.initMenu(groupMenu)
-            ctx.scene.leave('join-scene')
-            ctx.scene.enter('group-scene')
-        }
-        else {
-            ctx.reply('Non ci sono gruppi con questo codice :(')
-            ctx.scene.leave()
-        }
-    })
-})
-
-groupScene.start((ctx) => {
-    ctx.initMenu(groupMenu)
-})
-
-groupScene.on('message', (ctx) => {
-    if (typeof ctx.update.message.reply_markup !== 'undefined' && typeof ctx.update.message.reply_markup.inline_keyboard[0][0].url !== 'undefined') {
-        let url = ctx.update.message.reply_markup.inline_keyboard[0][0].url
-        groups.getGroup(ctx.from.id, (group) => {
-            if (group) {
-                let uri = `spotify:track:${url.match(/(?<=https:\/\/open.spotify.com\/track\/).+/)}`
-                spotify.addToQueue(group.owner, uri, (err) => {
-                    ctx.reply(err ? 'Non puoi mettere brani in coda se non ci sono dispositivi in riproduzione.' : 'La canzone è stata aggiunta in coda.')
-                })
-            } else {
-                ctx.scene.leave('group-scene')
-                ctx.reply('Il gruppo è stato sciolto.')
-            }
-        })
-    }
-})
-
 const bot = new Telegraf(process.env.TELEGRAM_BOT_TOKEN, { contextType: InlineMenuContext })
 bot.use(Session())
 bot.use(stage.middleware())
@@ -101,7 +66,7 @@ const groupMenu = new InlineMenu({
         })
     },
     html: (ctx) => ctx.session.owner ?
-        `<code>${ctx.session.code}</code>\nCondividi il codice e fa entrare i tuoi amici.\nScrivi '@groupfybot \<titolo canzone\>' e poi seleziona brano desiderato per aggiungerlo in coda` :
+        `<code>${ctx.session.code}</code>\nCondividi il codice e fa entrare i tuoi amici.\nScrivi '@groupfybot &lttitolo canzone&gt' e poi seleziona brano desiderato per aggiungerlo in coda` :
         `<code>${ctx.session.code}</code>\nScrivi @groupfybot <titolo canzone> e poi seleziona brano desiderato per aggiungerlo in coda`,
     inlineKeyboardMarkup: (ctx) => Markup.inlineKeyboard([
         Markup.callbackButton('Sciogli il gruppo', 'disband-group', !ctx.session.owner),
@@ -197,6 +162,41 @@ bot.action('leave-group', (ctx) => {
         ctx.scene.leave('group-scene')
         ctx.answerCbQuery()
     })
+})
+
+joinScene.on('text', (ctx) => {
+    groups.join({ telegram_id: ctx.from.id, code: ctx.message.text }, (doc) => {
+        if (doc) {
+            ctx.initMenu(groupMenu)
+            ctx.scene.leave('join-scene')
+            ctx.scene.enter('group-scene')
+        }
+        else {
+            ctx.reply('Non ci sono gruppi con questo codice :(')
+            ctx.scene.leave()
+        }
+    })
+})
+
+groupScene.start((ctx) => {
+    ctx.initMenu(groupMenu)
+})
+
+groupScene.on('message', (ctx) => {
+    if (typeof ctx.update.message.reply_markup !== 'undefined' && typeof ctx.update.message.reply_markup.inline_keyboard[0][0].url !== 'undefined') {
+        let url = ctx.update.message.reply_markup.inline_keyboard[0][0].url
+        groups.getGroup(ctx.from.id, (group) => {
+            if (group) {
+                let uri = `spotify:track:${url.match(/(?<=https:\/\/open.spotify.com\/track\/).+/)}`
+                spotify.addToQueue(group.owner, uri, (err) => {
+                    ctx.reply(err ? 'Non puoi mettere brani in coda se non ci sono dispositivi in riproduzione.' : 'La canzone è stata aggiunta in coda.')
+                })
+            } else {
+                ctx.scene.leave('group-scene')
+                ctx.reply('Il gruppo è stato sciolto.')
+            }
+        })
+    }
 })
 
 bot.inlineQuery(/[\w]/, (ctx) => inlineQuery.answerTracks(ctx))
