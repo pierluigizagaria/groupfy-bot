@@ -38,21 +38,6 @@ function isConnected(telegram_id, callback) {
     })
 }
 
-function refreshToken(telegram_id) {
-    Users.findOne({telegram_id: telegram_id}, (err, doc) => {
-        if (err) console.error(err)
-        spotify.setRefreshToken(doc.spotify_refresh_token)
-        spotify.refreshAccessToken((err, res) => {
-            if (err) console.error(err)
-            doc.updateOne({
-                spotify_token: res.body.access_token
-            }, (err) => {
-                if (err) console.error(err)
-            })
-        })
-    })
-}
-
 function connect(req, res, next) {
     if (!req.query.state || !req.query.code) {
         res.successful = false
@@ -93,7 +78,6 @@ function disconnect(telegram_id, callback) {
 module.exports = {
     getUser,
     getAuthURL,
-    refreshToken,
     connect,
     isConnected,
     disconnect

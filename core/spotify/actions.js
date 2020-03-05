@@ -20,14 +20,15 @@ function getTracks(query, callback) {
     })
 }
 
-function addToQueue(telegram_id, uri) {
+function addToQueue(telegram_id, uri, callback) {
     accounts.getUser(telegram_id, (user) => {
         api.setRefreshToken(user.spotify_refresh_token)
         api.refreshAccessToken((err, data) => {
             if (err) console.error(err)
             api.setAccessToken(data.body['access_token'])
+            api.setRefreshToken(data.body['refresh_token'])
             api.queue({uri: uri}, (err, res) => {
-                if (err) console.error('Probably user is now premium.')
+                callback(err)
             })
         })
     })

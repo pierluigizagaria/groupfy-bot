@@ -1,5 +1,4 @@
 class inlineMenu {
-
     constructor({ initContext, html, inlineKeyboardMarkup }) {
         this.middleware = initContext
         this.html = html

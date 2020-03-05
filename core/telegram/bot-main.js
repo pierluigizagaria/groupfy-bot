@@ -17,7 +17,7 @@ const joinScene = new Scene('join-scene')
 const groupScene = new Scene('group-scene')
 const stage = new Stage([joinScene, groupScene])
 
-joinScene.on('text', (ctx) => {
+joinScene.on('text', async (ctx) => {
     groups.join({ telegram_id: ctx.from.id, code: ctx.message.text }, (doc) => {
         if (doc) {
             ctx.initMenu(groupMenu)
@@ -26,22 +26,30 @@ joinScene.on('text', (ctx) => {
         }
         else {
             ctx.reply('There is no group with this code :(')
+            ctx.initMenu(mainMenu)
             ctx.scene.leave()
         }
     })
 })
 
-groupScene.on('message', (ctx) => {
+groupScene.on('message', async (ctx) => {
     if (ctx.update.message.reply_markup.inline_keyboard[0][0].url != undefined) {
         let url = ctx.update.message.reply_markup.inline_keyboard[0][0].url
         groups.getGroup(ctx.from.id, (group) => {
-            let uri = `spotify:track:${url.match(/(?<=https:\/\/open.spotify.com\/track\/).+/)}`
-            spotify.addToQueue(group.owner, uri)
+            if (group) {
+                let uri = `spotify:track:${url.match(/(?<=https:\/\/open.spotify.com\/track\/).+/)}`
+                spotify.addToQueue(group.owner, uri, (err) => {
+                    ctx.reply(err ? 'Could not queue songs if there are no playing devices.' : 'The song has been added to the queue.')
+                })
+            } else {
+                ctx.scene.leave('group-scene')
+                ctx.reply('The group was disbanded')
+            }
         })
     }
 })
 
-groupScene.start((ctx) => {
+groupScene.start(async (ctx) => {
     ctx.initMenu(groupMenu)
 })
 
@@ -126,8 +134,7 @@ bot.action('spotify-account-menu', async (ctx) => {
 
 bot.action('spotify-done', async (ctx) => {
     accounts.isConnected(ctx.from.id, (res) => {
-        if (res) ctx.answerCbQuery('Your Spotify account has been connected.')
-        else ctx.answerCbQuery('Could not connect to your spotify account.')
+        ctx.answerCbQuery(res ? 'Your Spotify account has been connected.' : 'Could not connect to your spotify account.')
     })
     ctx.editMenu(mainMenu)
 })
@@ -189,6 +196,7 @@ bot.action('leave-group', async (ctx) => {
     groups.leave({ telegram_id: ctx.from.id }, (doc) => {
         doc ? ctx.editMenu(mainMenu) : ctx.editMessageText('You already left this group.')
         ctx.scene.leave('group-scene')
+        ctx.answerCbQuery()
     })
 })
 
