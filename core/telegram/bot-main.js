@@ -40,7 +40,7 @@ const mainMenu = new InlineMenu({
 
 //Connect Spotify Menu
 const connectSpotifyMenu = new InlineMenu({
-    html: `<b>Apri il link, consenti Groupfy e dopo premi 'Fatto'. \n your spotify account.</b>`,
+    html: `Autorizza Spotify e dopo premi il pulsante <b>Fatto</b>.`,
     inlineKeyboardMarkup: (ctx) => Markup.inlineKeyboard([
         [Markup.urlButton('Autorizza Spotify', accounts.getAuthURL(ctx.from.id))],
         [Markup.callbackButton('Fatto', 'spotify-done')]
@@ -135,7 +135,7 @@ bot.action('create-group', (ctx) => {
 bot.action('join-group', (ctx) => {
     groups.getGroup(ctx.from.id, (doc, isOwner) => {
         if (doc == null) {
-            ctx.reply('Qual è il codice del gruppo?', Extra.markup(Extra.Markup.forceReply))
+            ctx.reply('Qual è il codice del gruppo?')
             ctx.scene.enter('join-scene')
             ctx.answerCbQuery()
         } else if (!isOwner) {

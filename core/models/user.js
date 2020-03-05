@@ -6,9 +6,8 @@ const userSchema = new mongoose.Schema({
         unique: true,
         required: true
     },
-    spotify_token: String,
-    spotify_refresh_token: String,
-    spotify_state: String,
+    refresh_token: String,
+    otp: String,
     spotify_connected: {
         type: Boolean,
         default: false

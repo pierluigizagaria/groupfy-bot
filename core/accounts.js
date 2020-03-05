@@ -17,24 +17,36 @@ function getUser(telegram_id, callback) {
 }
 
 function getAuthURL(telegram_id) {
-    var state = Math.random().toString(31).substring(2, 10) + Math.random().toString(31).substring(2, 10);
+    var new_otp = Math.random().toString(31).substring(2, 10) + Math.random().toString(31).substring(2, 10);
     Users.findOne({ telegram_id: telegram_id }, async (err, doc) => {
         if (err) console.error(err);
         if (doc != null) {
             doc.updateOne({
-                spotify_state: state
+                otp: new_otp
             }, (err) => {
                 if (err) console.error(err);
             })
         }
     })
-    return spotify.createAuthorizeURL(scopes, state, true)
+    return spotify.createAuthorizeURL(scopes, new_otp, true)
 }
 
 function isConnected(telegram_id, callback) {
     Users.findOne({ telegram_id: telegram_id, spotify_connected: true }, (err, doc) => {
         if (err) console.error(err);
-        callback(doc)
+        else if (doc) {
+            spotify.setRefreshToken(doc.refresh_token)
+            spotify.refreshAccessToken((err, data) => {
+                if (err) console.error(err)
+                else {
+                    spotify.setAccessToken(data.body['access_token'])
+                    spotify.setRefreshToken(data.body['refresh_token'])
+                    spotify.getMe((err, spotify_data) => {
+                        console.log(spotify_data)
+                    })
+                }
+            })
+        } else callback(doc, false)
     })
 }
 
@@ -43,15 +55,14 @@ function connect(req, res, next) {
         res.successful = false
         next()
     }
-    else Users.findOne({ spotify_state: req.query.state }, (err, user) => {
+    else Users.findOne({ otp: req.query.state }, (err, user) => {
         if (err) console.error(err)
         if (user != null) {
             spotify.authorizationCodeGrant(req.query.code).then((spotify_data, err) => {
                 if (err) console.error(err)
                 user.updateOne({
-                    spotify_state: '',
-                    spotify_token: spotify_data.body.access_token,
-                    spotify_refresh_token: spotify_data.body.refresh_token,
+                    otp: '',
+                    refresh_token: spotify_data.body.refresh_token,
                     spotify_connected: true
                 }, (err) => {
                     if (err) console.error(err)
@@ -67,8 +78,7 @@ function connect(req, res, next) {
 function disconnect(telegram_id, callback) {
     Users.findOneAndUpdate({ telegram_id: telegram_id, spotify_connected: true }, {
         spotify_connected: false,
-        spotify_token: '',
-        spotify_refresh_token: '',
+        refresh_token: '',
     }, (err) => {
         if (err) console.error(err)
         callback(err)
