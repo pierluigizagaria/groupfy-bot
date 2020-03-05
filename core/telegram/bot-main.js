@@ -108,8 +108,8 @@ bot.action('spotify-account-menu', (ctx) => {
 })
 
 bot.action('spotify-done', (ctx) => {
-    accounts.isConnected(ctx.from.id, (res) => {
-        ctx.answerCbQuery(res ? 'Il tuo account Spotify è stato connesso.' : 'Impossibile connettere il tuo account Spotify.')
+    accounts.getSpotifyAccount(ctx.from.id, (spotify_data) => {
+        ctx.answerCbQuery(spotify_data ? 'Il tuo account Spotify è stato connesso.' : 'Impossibile connettere il tuo account Spotify.')
     })
     ctx.editMenu(mainMenu)
 })
