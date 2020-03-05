@@ -103,8 +103,10 @@ bot.action('connect-spotify-menu', (ctx) => {
 })
 
 bot.action('spotify-account-menu', (ctx) => {
-    ctx.editMenu(loggedInMenu)
-    ctx.answerCbQuery()
+    accounts.getSpotifyAccount(ctx.from.id, (spotify_data) => {
+        spotify_data ? ctx.editMenu(loggedInMenu) : ctx.editMenu(mainMenu)
+        ctx.answerCbQuery()
+    })
 })
 
 bot.action('spotify-done', (ctx) => {
