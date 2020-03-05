@@ -68,8 +68,8 @@ const mainMenu = new InlineMenu({
     inlineKeyboardMarkup: (ctx) => Markup.inlineKeyboard([
         [Markup.callbackButton('Connetti Spotify', 'connect-spotify-menu', ctx.spotifyLogged)],
         [Markup.callbackButton('Account Spotify', 'spotify-account-menu', !ctx.spotifyLogged)],
-        [Markup.callbackButton('Crea un Gruppo', 'create-group', !ctx.spotifyLogged)],
-        [Markup.callbackButton('Entra in un Gruppo', 'join-group')]
+        [Markup.callbackButton('Crea un gruppo', 'create-group', !ctx.spotifyLogged)],
+        [Markup.callbackButton('Entra in un gruppo', 'join-group')]
     ])
 })
 
@@ -101,7 +101,7 @@ const groupMenu = new InlineMenu({
         })
     },
     html: (ctx) => ctx.session.owner ?
-        `<code>${ctx.session.code}</code>\nCondividi il codice e fa entrare i tuoi amici.\nScrivi @groupfybot <titolo canzone> e poi seleziona brano desiderato per aggiungerlo in coda` :
+        `<code>${ctx.session.code}</code>\nCondividi il codice e fa entrare i tuoi amici.\nScrivi '@groupfybot \<titolo canzone\>' e poi seleziona brano desiderato per aggiungerlo in coda` :
         `<code>${ctx.session.code}</code>\nScrivi @groupfybot <titolo canzone> e poi seleziona brano desiderato per aggiungerlo in coda`,
     inlineKeyboardMarkup: (ctx) => Markup.inlineKeyboard([
         Markup.callbackButton('Sciogli il gruppo', 'disband-group', !ctx.session.owner),
