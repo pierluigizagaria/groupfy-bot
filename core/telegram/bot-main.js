@@ -25,7 +25,7 @@ joinScene.on('text', (ctx) => {
             ctx.scene.enter('group-scene')
         }
         else {
-            ctx.reply('There is no group with this code :(')
+            ctx.reply('Non ci sono gruppi con questo codice :(')
             ctx.scene.leave()
         }
     })
@@ -42,11 +42,11 @@ groupScene.on('message', (ctx) => {
             if (group) {
                 let uri = `spotify:track:${url.match(/(?<=https:\/\/open.spotify.com\/track\/).+/)}`
                 spotify.addToQueue(group.owner, uri, (err) => {
-                    ctx.reply(err ? 'Could not queue songs if there are no playing devices.' : 'The song has been added to the queue.')
+                    ctx.reply(err ? 'Non puoi mettere brani in coda se non ci sono dispositivi in riproduzione.' : 'La canzone è stata aggiunta in coda.')
                 })
             } else {
                 ctx.scene.leave('group-scene')
-                ctx.reply('The group is disbanded.')
+                ctx.reply('Il gruppo è stato sciolto.')
             }
         })
     }
@@ -66,19 +66,19 @@ const mainMenu = new InlineMenu({
     },
     html: (ctx) => `<b>Ciao ${ctx.from.username}</b>`,
     inlineKeyboardMarkup: (ctx) => Markup.inlineKeyboard([
-        [Markup.callbackButton('Connect Spotify', 'connect-spotify-menu', ctx.spotifyLogged)],
-        [Markup.callbackButton('Spotify Account', 'spotify-account-menu', !ctx.spotifyLogged)],
-        [Markup.callbackButton('Create Group', 'create-group', !ctx.spotifyLogged)],
-        [Markup.callbackButton('Join Group', 'join-group')]
+        [Markup.callbackButton('Connetti Spotify', 'connect-spotify-menu', ctx.spotifyLogged)],
+        [Markup.callbackButton('Account Spotify', 'spotify-account-menu', !ctx.spotifyLogged)],
+        [Markup.callbackButton('Crea un Gruppo', 'create-group', !ctx.spotifyLogged)],
+        [Markup.callbackButton('Entra in un Gruppo', 'join-group')]
     ])
 })
 
 //Connect Spotify Menu
 const connectSpotifyMenu = new InlineMenu({
-    html: `<b>Open the link and press done to connect \n your spotify account.</b>`,
+    html: `<b>Apri il link, consenti Groupfy e dopo premi 'Fatto'. \n your spotify account.</b>`,
     inlineKeyboardMarkup: (ctx) => Markup.inlineKeyboard([
-        [Markup.urlButton('Authorize Spotify', accounts.getAuthURL(ctx.from.id))],
-        [Markup.callbackButton('Done', 'spotify-done')]
+        [Markup.urlButton('Autorizza Spotify', accounts.getAuthURL(ctx.from.id))],
+        [Markup.callbackButton('Fatto', 'spotify-done')]
     ])
 })
 
@@ -87,7 +87,7 @@ const loggedInMenu = new InlineMenu({
     html: (ctx) => `<b>${ctx.from.username}'s Spotify Account!</b>`,
     inlineKeyboardMarkup: () => Markup.inlineKeyboard([
         [Markup.callbackButton('Logout', 'spotify-logout')],
-        [Markup.callbackButton('Back', 'main-menu')],
+        [Markup.callbackButton('Indietro', 'main-menu')],
     ])
 })
 
@@ -101,11 +101,11 @@ const groupMenu = new InlineMenu({
         })
     },
     html: (ctx) => ctx.session.owner ?
-        `<code>${ctx.session.code}</code>\nShare the code to let your friends\njoin the group` :
-        `<code>${ctx.session.code}</code>\nWrite @groupfybot and then the \n song name to add it to the queue.`,
+        `<code>${ctx.session.code}</code>\nCondividi il codice e fa entrare i tuoi amici.\nScrivi @groupfybot <titolo canzone> e poi seleziona brano desiderato per aggiungerlo in coda` :
+        `<code>${ctx.session.code}</code>\nScrivi @groupfybot <titolo canzone> e poi seleziona brano desiderato per aggiungerlo in coda`,
     inlineKeyboardMarkup: (ctx) => Markup.inlineKeyboard([
-        Markup.callbackButton('Disband Group', 'disband-group', !ctx.session.owner),
-        Markup.callbackButton('Leave Group', 'leave-group', ctx.session.owner)
+        Markup.callbackButton('Sciogli il gruppo', 'disband-group', !ctx.session.owner),
+        Markup.callbackButton('Esci dal gruppo', 'leave-group', ctx.session.owner)
     ])
 })
 
@@ -133,7 +133,7 @@ bot.action('spotify-account-menu', (ctx) => {
 
 bot.action('spotify-done', (ctx) => {
     accounts.isConnected(ctx.from.id, (res) => {
-        ctx.answerCbQuery(res ? 'Your Spotify account has been connected.' : 'Could not connect to your spotify account.')
+        ctx.answerCbQuery(res ? 'Il tuo account Spotify è stato connesso.' : 'Impossibile connettere il tuo account Spotify.')
     })
     ctx.editMenu(mainMenu)
 })
@@ -141,9 +141,9 @@ bot.action('spotify-done', (ctx) => {
 bot.action('spotify-logout', (ctx) => {
     accounts.disconnect(ctx.from.id, (err) => {
         if (err) {
-            ctx.answerCbQuery('An error occured, please try again.')
+            ctx.answerCbQuery('Errore, per favore riprova.')
         } else {
-            ctx.answerCbQuery('Your Spotify account has been disconnected.')
+            ctx.answerCbQuery('Il tuo account Spotify è stato disconnesso.')
             ctx.editMenu(mainMenu)
         }
     })
@@ -160,9 +160,9 @@ bot.action('create-group', (ctx) => {
         } else if (isOwner) {
             ctx.editMenu(groupMenu)
             ctx.scene.enter('group-scene')
-            ctx.answerCbQuery('You already created a group!')
+            ctx.answerCbQuery('Hai già creato un gruppo!')
         } else {
-            ctx.answerCbQuery('You can\'t create a group if you\'re already in one!')
+            ctx.answerCbQuery('Non puoi creare un gruppo se ne sei già in uno!')
         }
     })
 })
@@ -170,22 +170,22 @@ bot.action('create-group', (ctx) => {
 bot.action('join-group', (ctx) => {
     groups.getGroup(ctx.from.id, (doc, isOwner) => {
         if (doc == null) {
-            ctx.editMessageText('What is the group code?', Extra.markup())
+            ctx.editMessageText('Qual è il codice del gruppo?', Extra.markup())
             ctx.scene.enter('join-scene')
             ctx.answerCbQuery()
         } else if (!isOwner) {
             ctx.editMenu(groupMenu)
             ctx.scene.enter('group-scene')
-            ctx.answerCbQuery('You already joined a group!')
+            ctx.answerCbQuery('Sei già in un gruppo!')
         } else {
-            ctx.answerCbQuery('You can\'t join a group if you\'re already in one!')
+            ctx.answerCbQuery('Non puoi entrare in un gruppo se ne sei già in uno!')
         }
     })
 })
 
 bot.action('disband-group', (ctx) => {
     groups.disband(ctx.from.id, (doc) => {
-        doc ? ctx.editMenu(mainMenu) : ctx.editMessageText('Your group was already disbanded.')
+        doc ? ctx.editMenu(mainMenu) : ctx.editMessageText('Hai già sciolto questo gruppo.')
         ctx.scene.leave('group-scene')
         ctx.answerCbQuery()
     })
@@ -193,7 +193,7 @@ bot.action('disband-group', (ctx) => {
 
 bot.action('leave-group', (ctx) => {
     groups.leave({ telegram_id: ctx.from.id }, (doc) => {
-        doc ? ctx.editMenu(mainMenu) : ctx.editMessageText('You already left this group.')
+        doc ? ctx.editMenu(mainMenu) : ctx.editMessageText('Sei già uscito questo gruppo.')
         ctx.scene.leave('group-scene')
         ctx.answerCbQuery()
     })
