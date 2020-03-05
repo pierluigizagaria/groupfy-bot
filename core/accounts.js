@@ -1,6 +1,6 @@
 const spotify = require('./spotify/init-api')
 const Users = require('./models/user')
-const scopes = ['user-read-playback-state', 'user-modify-playback-state', 'user-read-currently-playing']
+const scopes = ['user-read-private','user-read-playback-state', 'user-modify-playback-state', 'user-read-currently-playing']
 
 function getUser(telegram_id, callback) {
     Users.findOne({ telegram_id: telegram_id }, (err, doc) => {
@@ -31,7 +31,7 @@ function getAuthURL(telegram_id) {
     return spotify.createAuthorizeURL(scopes, new_otp, true)
 }
 
-function isConnected(telegram_id, callback) {
+function getSpotifyAccount(telegram_id, callback) {
     Users.findOne({ telegram_id: telegram_id, spotify_connected: true }, (err, doc) => {
         if (err) console.error(err);
         else if (doc) {
@@ -42,11 +42,12 @@ function isConnected(telegram_id, callback) {
                     spotify.setAccessToken(data.body['access_token'])
                     spotify.setRefreshToken(data.body['refresh_token'])
                     spotify.getMe((err, spotify_data) => {
-                        console.log(spotify_data)
+                        if (err) console.error(err)
+                        else callback(spotify_data)
                     })
                 }
             })
-        } else callback(doc, false)
+        } else callback(null)
     })
 }
 
@@ -89,6 +90,6 @@ module.exports = {
     getUser,
     getAuthURL,
     connect,
-    isConnected,
+    getSpotifyAccount,
     disconnect
 }

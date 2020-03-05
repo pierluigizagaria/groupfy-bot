@@ -24,16 +24,19 @@ bot.use(stage.middleware())
 //Main Menu
 const mainMenu = new InlineMenu({
     initContext: (ctx, next) => {
-        accounts.isConnected(ctx.from.id, (res) => {
-            ctx.spotifyLogged = res != null ? true : false
+        accounts.getSpotifyAccount(ctx.from.id, (spotify_data) => {
+            ctx.session.logged = spotify_data ? true : false
+            if (spotify_data) {
+                ctx.session.premium = spotify_data.body.product == 'premium'
+            }
             next()
         })
     },
     html: (ctx) => `<b>Ciao ${ctx.from.username}</b>`,
     inlineKeyboardMarkup: (ctx) => Markup.inlineKeyboard([
-        [Markup.callbackButton('Connetti Spotify', 'connect-spotify-menu', ctx.spotifyLogged)],
-        [Markup.callbackButton('Account Spotify', 'spotify-account-menu', !ctx.spotifyLogged)],
-        [Markup.callbackButton('Crea Gruppo', 'create-group', !ctx.spotifyLogged)],
+        [Markup.callbackButton('Connetti Spotify', 'connect-spotify-menu', ctx.session.logged)],
+        [Markup.callbackButton('Account Spotify', 'spotify-account-menu', !ctx.session.logged)],
+        [Markup.callbackButton('Crea Gruppo', 'create-group', ctx.session.premium)],
         [Markup.callbackButton('Entra Gruppo', 'join-group')]
     ])
 })
@@ -49,7 +52,15 @@ const connectSpotifyMenu = new InlineMenu({
 
 //Logged In Menu
 const loggedInMenu = new InlineMenu({
-    html: (ctx) => `<b>${ctx.from.username}'s Spotify Account!</b>`,
+    initContext: (ctx, next) => {
+        accounts.getSpotifyAccount(ctx.from.id, (spotify_data) => {
+            if (spotify_data) {
+                ctx.session.display_name = spotify_data.body.display_name
+            }
+            next()
+        })
+    },
+    html: (ctx) => `<b>Account Connesso</b>\nUsername: <pre>${ctx.session.display_name}</pre>`,
     inlineKeyboardMarkup: () => Markup.inlineKeyboard([
         [Markup.callbackButton('Logout', 'spotify-logout')],
         [Markup.callbackButton('Indietro', 'main-menu')],
