@@ -43,6 +43,7 @@ function getSpotifyAccount(telegram_id, callback) {
                     disconnect(doc.telegram_id, (err) => {
                         if (err) console.error(err)
                     })
+                    callback(null)
                 } else {
                     spotify.setAccessToken(data.body['access_token'])
                     spotify.setRefreshToken(data.body['refresh_token'])
