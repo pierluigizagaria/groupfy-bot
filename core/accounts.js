@@ -5,7 +5,7 @@ const scopes = ['user-read-private','user-read-playback-state', 'user-modify-pla
 function getUser(telegram_id, callback) {
     Users.findOne({ telegram_id: telegram_id }, (err, doc) => {
         if (err) console.error(err);
-        if (doc == null) {
+        else if (doc == null) {
             new Users({
                 telegram_id: telegram_id
             }).save((err, doc) => {
@@ -61,10 +61,9 @@ function connect(req, res, next) {
     if (!req.query.state || !req.query.code) {
         res.successful = false
         next()
-    }
-    else Users.findOne({ otp: req.query.state }, (err, user) => {
+    } else Users.findOne({ otp: req.query.state }, (err, user) => {
         if (err) console.error(err)
-        if (user != null) {
+        else if (user != null) {
             spotify.authorizationCodeGrant(req.query.code).then((spotify_data, err) => {
                 if (err) console.error(err)
                 user.updateOne({
@@ -77,8 +76,7 @@ function connect(req, res, next) {
                     next()
                 })
             })
-        }
-        else next()
+        } else next()
     })
 }
 
@@ -88,7 +86,7 @@ function disconnect(telegram_id, callback) {
         refresh_token: '',
     }, (err) => {
         if (err) console.error(err)
-        callback(err)
+        else callback(err)
     })
 }
 
