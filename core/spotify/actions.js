@@ -1,4 +1,4 @@
-const api = require('./api-setup')
+const api = require('./init-api')
 const accounts = require('../accounts')
 
 function getTracks(query, callback) {
@@ -20,18 +20,20 @@ function getTracks(query, callback) {
     })
 }
 
-function getPlayingTrack(telegram_id) {
-    accounts.getUser(telegram_id, (doc) => {
-        api.setRefreshToken(doc.spotify_refresh_token)
-        api.setAccessToken(doc.spotify_token)
-        api.getMyCurrentPlayingTrack((res) => {
-            console.log(res)
+function addToQueue(telegram_id, uri) {
+    accounts.getUser(telegram_id, (user) => {
+        api.setRefreshToken(user.spotify_refresh_token)
+        api.refreshAccessToken((err, data) => {
+            if (err) console.error(err)
+            api.setAccessToken(data.body['access_token'])
+            api.queue({uri: uri}, (err, res) => {
+                if (err) console.error('Probably user is now premium.')
+            })
         })
     })
 }
 
-
 module.exports = {
     getTracks,
-    getPlayingTrack
+    addToQueue
 }

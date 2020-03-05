@@ -1,10 +1,10 @@
 class inlineMenu {
+
     constructor({ initContext, html, inlineKeyboardMarkup }) {
         this.middleware = initContext
         this.html = html
         this.inlineKeyboardMarkup = inlineKeyboardMarkup
     }
-
     getMessage(ctx, callback) {
         if (isFunc(this.middleware)) {
             this.middleware(ctx, () => {

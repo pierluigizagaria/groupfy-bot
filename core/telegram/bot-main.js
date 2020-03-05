@@ -11,6 +11,7 @@ const InlineMenu = require('./inline-menu')
 const inlineQuery = require('./inline-queries')
 const accounts = require('../accounts')
 const groups = require('../groups')
+const spotify = require('../spotify/actions')
 
 const joinScene = new Scene('join-scene')
 const groupScene = new Scene('group-scene')
@@ -31,7 +32,17 @@ joinScene.on('text', (ctx) => {
 })
 
 groupScene.on('message', (ctx) => {
-    accounts.refreshToken(ctx.from.id)
+    if (ctx.update.message.reply_markup.inline_keyboard[0][0].url != undefined) {
+        let url = ctx.update.message.reply_markup.inline_keyboard[0][0].url
+        groups.getGroup(ctx.from.id, (group) => {
+            let uri = `spotify:track:${url.match(/(?<=https:\/\/open.spotify.com\/track\/).+/)}`
+            spotify.addToQueue(group.owner, uri)
+        })
+    }
+})
+
+groupScene.start((ctx) => {
+    ctx.initMenu(groupMenu)
 })
 
 const bot = new Telegraf(process.env.TELEGRAM_BOT_TOKEN, { contextType: InlineMenuContext })
@@ -91,7 +102,7 @@ const groupMenu = new InlineMenu({
     },
     html: (ctx) => ctx.session.owner ?
         `<code>${ctx.session.code}</code>\nShare the code to let your friends\njoin the group` :
-        `You joined the group: <code>${ctx.session.code}</code>`,
+        `<code>${ctx.session.code}</code>\nWrite @groupfybot and then the \n song name to add it to the queue.`,
     inlineKeyboardMarkup: (ctx) => Markup.inlineKeyboard([
         Markup.callbackButton('Disband Group', 'disband-group', !ctx.session.owner),
         Markup.callbackButton('Leave Group', 'leave-group', ctx.session.owner)
@@ -100,7 +111,7 @@ const groupMenu = new InlineMenu({
 
 bot.action('main-menu', async (ctx) => {
     ctx.editMenu(mainMenu)
-    ctx.answerCbQuery('')
+    ctx.answerCbQuery()
 })
 
 bot.action('connect-spotify-menu', async (ctx) => {
@@ -136,12 +147,12 @@ bot.action('create-group', async (ctx) => {
     groups.getGroup(ctx.from.id, (doc, isOwner) => {
         if (doc == null) {
             groups.create(ctx.from.id, (doc) => {
-                ctx.initMenu(groupMenu)
+                ctx.editMenu(groupMenu)
                 ctx.scene.enter('group-scene')
                 ctx.answerCbQuery()
             })
         } else if (isOwner) {
-            ctx.initMenu(groupMenu)
+            ctx.editMenu(groupMenu)
             ctx.scene.enter('group-scene')
             ctx.answerCbQuery('You already created a group!')
         } else {
@@ -153,11 +164,11 @@ bot.action('create-group', async (ctx) => {
 bot.action('join-group', async (ctx) => {
     groups.getGroup(ctx.from.id, (doc, isOwner) => {
         if (doc == null) {
-            ctx.reply('What is the group code?', Extra.markup(Markup.forceReply()))
+            ctx.editMessageText('What is the group code?', Extra.markup())
             ctx.scene.enter('join-scene')
             ctx.answerCbQuery()
         } else if (!isOwner) {
-            ctx.initMenu(groupMenu)
+            ctx.editMenu(groupMenu)
             ctx.scene.enter('group-scene')
             ctx.answerCbQuery('You already joined a group!')
         } else {
@@ -168,14 +179,15 @@ bot.action('join-group', async (ctx) => {
 
 bot.action('disband-group', async (ctx) => {
     groups.disband(ctx.from.id, (doc) => {
-        doc ? ctx.editMessageText('Your group has been disbanded.') : ctx.editMessageText('Your group was already disbanded.')
+        doc ? ctx.editMenu(mainMenu) : ctx.editMessageText('Your group was already disbanded.')
         ctx.scene.leave('group-scene')
+        ctx.answerCbQuery()
     })
 })
 
 bot.action('leave-group', async (ctx) => {
     groups.leave({ telegram_id: ctx.from.id }, (doc) => {
-        doc ? ctx.editMessageText('You left the group') : ctx.editMessageText('You already left this group.')
+        doc ? ctx.editMenu(mainMenu) : ctx.editMessageText('You already left this group.')
         ctx.scene.leave('group-scene')
     })
 })

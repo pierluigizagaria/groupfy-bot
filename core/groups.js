@@ -55,6 +55,4 @@ module.exports = {
     leave,
     disband,
     getGroup,
-    queue,
-    skip
 }

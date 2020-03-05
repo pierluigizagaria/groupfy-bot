@@ -1,4 +1,4 @@
-const spotify = require('./spotify/api-setup')
+const spotify = require('./spotify/init-api')
 const Users = require('./models/user')
 const scopes = ['user-read-playback-state', 'user-modify-playback-state', 'user-read-currently-playing']
 
