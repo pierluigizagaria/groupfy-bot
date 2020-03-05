@@ -164,7 +164,6 @@ bot.action('leave-group', async (ctx) => {
     })
 })
 
-
 joinScene.on('text', async (ctx) => {
     groups.join({ telegram_id: ctx.from.id, code: ctx.message.text }, (doc) => {
         if (doc) {
@@ -181,7 +180,7 @@ joinScene.on('text', async (ctx) => {
 })
 
 groupScene.on('message', async (ctx) => {
-    if (ctx.update.message.reply_markup.inline_keyboard[0][0].url != undefined) {
+    if (typeof ctx.update.message.reply_markup !== 'undefined' && typeof ctx.update.message.reply_markup.inline_keyboard[0][0].url !== 'undefined') {
         let url = ctx.update.message.reply_markup.inline_keyboard[0][0].url
         groups.getGroup(ctx.from.id, (group) => {
             if (group) {
