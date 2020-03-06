@@ -28,7 +28,7 @@ const mainMenu = new InlineMenu({
             ctx.session.logged = spotify_data ? true : false
             if (spotify_data) {
                 ctx.session.premium = spotify_data.body.product == 'premium'
-            }
+            } else ctx.session.premium = false
             next()
         })
     },
@@ -36,7 +36,7 @@ const mainMenu = new InlineMenu({
     inlineKeyboardMarkup: (ctx) => Markup.inlineKeyboard([
         [Markup.callbackButton('Connetti Spotify', 'connect-spotify-menu', ctx.session.logged)],
         [Markup.callbackButton('Account Spotify', 'spotify-account-menu', !ctx.session.logged)],
-        [Markup.callbackButton('Crea Gruppo', 'create-group', !(ctx.session.logged || ctx.session.premium))],
+        [Markup.callbackButton('Crea Gruppo', 'create-group', !(ctx.session.logged && ctx.session.premium))],
         [Markup.callbackButton('Entra Gruppo', 'join-group')]
     ])
 })
