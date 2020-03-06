@@ -61,7 +61,7 @@ const loggedInMenu = new InlineMenu({
             next()
         })
     },
-    html: (ctx) => `Utente: <pre>${ctx.session.display_name}</pre>\Stato: <pre>${ctx.session.product}</pre>`,
+    html: (ctx) => `Utente: <pre>${ctx.session.display_name}</pre>\nStato: <pre>${ctx.session.product}</pre>`,
     inlineKeyboardMarkup: () => Markup.inlineKeyboard([
         [Markup.callbackButton('Logout', 'spotify-logout')],
         [Markup.callbackButton('Indietro', 'main-menu')],
