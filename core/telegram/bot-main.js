@@ -36,7 +36,7 @@ const mainMenu = new InlineMenu({
     inlineKeyboardMarkup: (ctx) => Markup.inlineKeyboard([
         [Markup.callbackButton('Connetti Spotify', 'connect-spotify-menu', ctx.session.logged)],
         [Markup.callbackButton('Account Spotify', 'spotify-account-menu', !ctx.session.logged)],
-        [Markup.callbackButton('Crea Gruppo', 'create-group', !ctx.session.premium)],
+        [Markup.callbackButton('Crea Gruppo', 'create-group', !(ctx.session.logged || ctx.session.premium))],
         [Markup.callbackButton('Entra Gruppo', 'join-group')]
     ])
 })
@@ -56,11 +56,12 @@ const loggedInMenu = new InlineMenu({
         accounts.getSpotifyAccount(ctx.from.id, (spotify_data) => {
             if (spotify_data) {
                 ctx.session.display_name = spotify_data.body.display_name
+                ctx.session.product = spotify_data.body.product
             }
             next()
         })
     },
-    html: (ctx) => `<b>Account Spotify</b>\n\nUsername: <pre>${ctx.session.display_name}</pre>`,
+    html: (ctx) => `Utente: <pre>${ctx.session.display_name}</pre>\nAbbonamento: <pre>${ctx.session.product}</pre>`,
     inlineKeyboardMarkup: () => Markup.inlineKeyboard([
         [Markup.callbackButton('Logout', 'spotify-logout')],
         [Markup.callbackButton('Indietro', 'main-menu')],
@@ -183,8 +184,7 @@ joinScene.on('text', (ctx) => {
             ctx.initMenu(groupMenu)
             ctx.scene.leave('join-scene')
             ctx.scene.enter('group-scene')
-        }
-        else {
+        } else {
             ctx.reply('Non ci sono gruppi con questo codice :(')
             ctx.scene.leave()
         }
